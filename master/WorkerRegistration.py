@@ -1,9 +1,10 @@
 from flask_restful import Resource, reqparse
+from typing import Tuple,Dict, Any
 
 from db import db
 
 class WorkerRegistration(Resource):
-    def post(self):
+    def post(self)-> Tuple[Dict[str, Any], int]:
         """Saving worker information on the database"""
         parser = reqparse.RequestParser()
         parser.add_argument("id", type=str, required=True)

@@ -4,7 +4,7 @@ import psutil, multiprocessing
 import argparse
 
 class SendInformation:
-    def __init__(self):
+    def __init__(self) -> None:
         self.args = self.get_arguments()
 
     def post(self, url: str, data: dict) -> requests.Response:
@@ -32,7 +32,7 @@ class SendInformation:
         parser.add_argument("-i", "--worker-ip", help="Worker IP")
         return parser.parse_args()
 
-    def main(self):
+    def main(self) -> None:
         self.register()
 
 if __name__ == "__main__":
