@@ -1,7 +1,7 @@
 from flask_restful import Resource, reqparse
 from typing import Tuple,Dict, Any
 
-from db import db
+from db import DB
 
 class WorkerRegistration(Resource):
     def post(self)-> Tuple[Dict[str, Any], int]:
@@ -14,13 +14,7 @@ class WorkerRegistration(Resource):
         parser.add_argument("status", type=str, required=True)
         args = parser.parse_args()
 
-        worker_id = args["id"]
-        db[worker_id] = {
-            "ip": args["ip"],
-            "ram": args["ram"],
-            "cpu": args["cpu"],
-            "status": args["status"],
-        }
+        db = DB()
+        db.save_data(args["id"], args)
 
-        return {"status": "ok", "id": worker_id}, 200
-    
+        return {"status": "ok", "id": args["id"]}, 200
