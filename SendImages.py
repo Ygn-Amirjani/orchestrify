@@ -1,34 +1,39 @@
 import requests
 import argparse
-from Redis import Redis
 import random
 
-def post(url: str, data: str) -> requests.Response:
-    return requests.post(url, json=data)
+from Redis import Redis
 
-def find_worker():
-    db = Redis()
-    print(db.read(random.choice(db.read_all())))
-    return f"http://{db.read(random.choice(db.read_all()))['ip']}:18081"
+class SendImages:
+    def __init__(self) -> None:
+        self.args = self.get_arguments()
 
-def send_image(worker_url: str, image_name: str) -> None:
-    data = image_name
-    result = post(f"{worker_url}/pull_image", data)
+    def post(self, url: str, data: str) -> requests.Response:
+        return requests.post(url, json=data)
 
-    if result.status_code == 200:
-        print("Successfully pulled image")
-    else:
-        print(result.text)
-        raise Exception(f"Failed to pull image: {image_name}. {result.status_code}")
+    def find_worker(self):
+        redis = Redis()
+        print(redis.read(random.choice(redis.read_all())))
+        return f"http://{redis.read(random.choice(redis.read_all()))['ip']}:18081"
 
-def get_aruments() -> argparse.Namespace:
-    """Get arguments from CLI using argparse"""
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-i", "--image-name", help="Image NAME")
-    return parser.parse_args()
+    def send_image(self, worker_url: str) -> None:
+        data = self.args.image_name
+        result = self.post(f"{worker_url}/pull_image", data)
 
-def main(args: argparse.Namespace):
-    send_image(find_worker(), args.image_name)
+        if result.status_code == 200:
+            print("Successfully pulled image")
+        else:
+            print(result.text)
+            raise Exception(f"Failed to pull image: {data}. {result.status_code}")
+
+    def get_arguments(self) -> argparse.Namespace:
+        """Get arguments from CLI using argparse"""
+        parser = argparse.ArgumentParser()
+        parser.add_argument("-i", "--image-name", help="Image NAME")
+        return parser.parse_args()
+
+    def main(self):
+        self.send_image(self.find_worker())
 
 if __name__ == "__main__":
-    main(get_aruments())
+    SendImages().main()
