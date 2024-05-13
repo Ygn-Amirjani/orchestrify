@@ -2,7 +2,7 @@ import requests
 import argparse
 import random
 
-from Redis import Redis
+from DataBase.Redis import Redis
 
 class SendImages:
     def __init__(self) -> None:
@@ -11,7 +11,7 @@ class SendImages:
     def post(self, url: str, data: str) -> requests.Response:
         return requests.post(url, json=data)
 
-    def find_worker(self):
+    def find_worker(self) -> str:
         redis = Redis()
         print(redis.read(random.choice(redis.read_all())))
         return f"http://{redis.read(random.choice(redis.read_all()))['ip']}:18081"
@@ -32,7 +32,7 @@ class SendImages:
         parser.add_argument("-i", "--image-name", help="Image NAME")
         return parser.parse_args()
 
-    def main(self):
+    def main(self)-> None:
         self.send_image(self.find_worker())
 
 if __name__ == "__main__":

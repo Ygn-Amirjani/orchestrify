@@ -1,10 +1,12 @@
 from flask import Flask
 from flask_restful import Api
 
-from worker.PullImage import PullImage
+from PullImage import PullImage
 
 app = Flask(__name__)
 api = Api(app)
+
+app.debug = True
 
 # Add the resource to the API
 api.add_resource(

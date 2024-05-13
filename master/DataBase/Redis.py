@@ -1,4 +1,4 @@
-from Repository import Repository
+from DataBase.Repository import Repository
 from typing import Dict, List
 import redis
 
