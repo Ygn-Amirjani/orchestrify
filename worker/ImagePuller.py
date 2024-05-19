@@ -4,7 +4,7 @@ from typing import Any, Dict
 
 import docker
 
-class PullImage(Resource):
+class ImagePuller(Resource):
     def post(self) -> Dict[str, Any]:
         try:
             image_name = request.get_json()

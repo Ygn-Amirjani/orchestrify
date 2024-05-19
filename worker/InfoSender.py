@@ -3,7 +3,7 @@ import uuid
 import psutil, multiprocessing
 import argparse
 
-class SendInformation:
+class InfoSender:
     def __init__(self) -> None:
         self.args = self.get_arguments()
 
@@ -36,4 +36,4 @@ class SendInformation:
         self.register()
 
 if __name__ == "__main__":
-    SendInformation().main()
+    InfoSender().main()

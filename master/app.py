@@ -1,11 +1,11 @@
 from flask import Flask
 from flask_restful import Api
 
-from WorkerRegistration import WorkerRegistration
-from WorkerList import WorkerList
-from WorkerInformation import WorkerInformation
+from WorkerRegistrar import WorkerRegistrar
+from WorkersList import WorkersList
+from WorkerInfo import WorkerInfo
 
-from DataBase.Redis import Redis
+from DataBase.RedisDB import Redis
 
 app = Flask(__name__)
 api = Api(app)
@@ -15,17 +15,17 @@ app.debug = True
 db = Redis()
 
 api.add_resource(
-    WorkerRegistration,
+    WorkerRegistrar,
     '/worker',
     resource_class_kwargs={'repository': db}
 )
 api.add_resource(
-    WorkerList,
+    WorkersList,
     '/workers',
     resource_class_kwargs={'repository': db}
 )
 api.add_resource(
-    WorkerInformation,
+    WorkerInfo,
     '/worker/<worker_id>',
     resource_class_kwargs={'repository': db}
 )

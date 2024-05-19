@@ -2,9 +2,9 @@ import requests
 import argparse
 import random
 
-from DataBase.Redis import Redis
+from DataBase.RedisDB import Redis
 
-class SendImages:
+class ImageSender:
     def __init__(self) -> None:
         self.args = self.get_arguments()
 
@@ -36,4 +36,4 @@ class SendImages:
         self.send_image(self.find_worker())
 
 if __name__ == "__main__":
-    SendImages().main()
+    ImageSender().main()

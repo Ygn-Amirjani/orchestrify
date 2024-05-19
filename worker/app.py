@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_restful import Api
 
-from PullImage import PullImage
+from ImagePuller import ImagePuller
 
 app = Flask(__name__)
 api = Api(app)
@@ -10,7 +10,7 @@ app.debug = True
 
 # Add the resource to the API
 api.add_resource(
-    PullImage,
+    ImagePuller,
     '/pull_image'
 )
 

@@ -2,7 +2,7 @@ from flask_restful import Resource
 from typing import Tuple, List
 from DataBase.Repository import Repository
 
-class WorkerList(Resource):
+class WorkersList(Resource):
     def __init__(self, repository: Repository) -> None:
         self.repository = repository
 
