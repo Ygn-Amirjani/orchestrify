@@ -1,13 +1,13 @@
 import requests
-import argparse
 import random
 
+from cli import get_arguments
 from DataBase.Repository import Repository
 from DataBase.RedisDB import Redis
 
 class ImageSender:
     def __init__(self, repository:Repository) -> None:
-        self.args = self.get_arguments()
+        self.args = get_arguments()
         self.db = repository
 
     def post(self, url: str, data: str) -> requests.Response:
@@ -26,12 +26,6 @@ class ImageSender:
         else:
             print(result.text)
             raise Exception(f"Failed to pull image: {data}. {result.status_code}")
-
-    def get_arguments(self) -> argparse.Namespace:
-        """Get arguments from CLI using argparse"""
-        parser = argparse.ArgumentParser()
-        parser.add_argument("-i", "--image-name", help="Image NAME")
-        return parser.parse_args()
 
     def main(self)-> None:
         self.send_image(self.find_worker())
