@@ -2,19 +2,20 @@ import requests
 import argparse
 import random
 
+from DataBase.Repository import Repository
 from DataBase.RedisDB import Redis
 
 class ImageSender:
-    def __init__(self) -> None:
+    def __init__(self, repository:Repository) -> None:
         self.args = self.get_arguments()
+        self.db = repository
 
     def post(self, url: str, data: str) -> requests.Response:
         return requests.post(url, json=data)
 
     def find_worker(self) -> str:
-        redis = Redis()
-        print(redis.read(random.choice(redis.read_all())))
-        return f"http://{redis.read(random.choice(redis.read_all()))['ip']}:18081"
+        print(self.db.read(random.choice(self.db.read_all())))
+        return f"http://{self.db.read(random.choice(self.db.read_all()))['ip']}:18081"
 
     def send_image(self, worker_url: str) -> None:
         data = self.args.image_name
@@ -36,4 +37,4 @@ class ImageSender:
         self.send_image(self.find_worker())
 
 if __name__ == "__main__":
-    ImageSender().main()
+    ImageSender(repository=Redis()).main()
