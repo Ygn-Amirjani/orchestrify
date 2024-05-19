@@ -2,8 +2,8 @@ import requests
 import random
 
 from cli import get_arguments
-from DataBase.Repository import Repository
-from DataBase.RedisDB import Redis
+from database.Repository import Repository
+from database.RedisDB import Redis
 
 class ImageSender:
     def __init__(self, repository:Repository) -> None:

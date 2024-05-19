@@ -5,7 +5,7 @@ from WorkerRegistrar import WorkerRegistrar
 from WorkersList import WorkersList
 from WorkerInfo import WorkerInfo
 
-from DataBase.RedisDB import Redis
+from database.RedisDB import Redis
 
 app = Flask(__name__)
 api = Api(app)
