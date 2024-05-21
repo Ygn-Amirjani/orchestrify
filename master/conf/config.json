@@ -4,6 +4,7 @@
 	"routes":{
 		"master":{
 			"register": "/worker",
+			"update": "/worker/<string:worker_id>",
 			"list":"/workers",
 			"info":"/worker/<string:worker_id>"
 		}

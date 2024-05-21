@@ -3,6 +3,7 @@ from flask_restful import Api
 import json
 
 from WorkerRegistrar import WorkerRegistrar
+from WorkerUpdater import WorkerUpdater
 from WorkersList import WorkersList
 from WorkerInfo import WorkerInfo
 
@@ -23,6 +24,11 @@ db = Redis()
 api.add_resource(
     WorkerRegistrar,
     CONFIG.get('routes', {}).get('master', {}).get('register'),
+    resource_class_kwargs={'repository': db}
+)
+api.add_resource(
+    WorkerUpdater,
+    CONFIG.get('routes', {}).get('master', {}).get('update'),
     resource_class_kwargs={'repository': db}
 )
 api.add_resource(
