@@ -1,5 +1,5 @@
 from cli import get_arguments
-import psutil, multiprocessing
+import psutil , socket
 import requests
 import uuid, time
 
@@ -18,8 +18,8 @@ class InfoSender:
         """Prepare the worker data to be sent to the master"""
         return {
             "ip": self.args.worker_ip,
-            "ram": psutil.virtual_memory().total,
-            "cpu": multiprocessing.cpu_count(),
+            "ram": psutil.virtual_memory().percent,
+            "cpu": psutil.cpu_percent(interval=1),
             "status": "RUNNING",
         }
 
