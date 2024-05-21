@@ -17,7 +17,7 @@ class InfoSender:
     def get_worker_data(self) -> dict:
         """Prepare the worker data to be sent to the master"""
         return {
-            "ip": self.args.worker_ip,
+            "ip": socket.gethostbyname(socket.gethostname()),
             "ram": psutil.virtual_memory().percent,
             "cpu": psutil.cpu_percent(interval=1),
             "status": "RUNNING",
