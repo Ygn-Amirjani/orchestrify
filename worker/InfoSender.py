@@ -2,6 +2,7 @@ from worker.cli import get_arguments
 import psutil , socket
 import requests
 import uuid, time
+import threading
 
 from worker.conf.config import CONFIG
 
@@ -36,23 +37,29 @@ class InfoSender:
         else:
             print(result.text)
             raise Exception(f"Worker registration failed {result.status_code}")
+        
+        time.sleep(5)
 
     def update_info(self):
-        data = self.get_worker_data()
+        while True:
+            data = self.get_worker_data()
 
-        result = self.put(f"{self.args.master_ip}{self.register_path}/{self.worker_id}", data)
-        if result.status_code == 200:
-            print("Worker updated successfully")
-        else:
-            print(result.text)
-            raise Exception(f"Worker update failed {result.status_code}")
+            result = self.put(f"{self.args.master_ip}{self.register_path}/{self.worker_id}", data)
+            if result.status_code == 200:
+                print("Worker updated successfully")
+            else:
+                print(result.text)
+                raise Exception(f"Worker update failed {result.status_code}")
+
+            time.sleep(5)
 
     def main(self) -> None:
         self.register()
-        time.sleep(15)
-        while True:
-            self.update_info()
-            time.sleep(15)
+        # Create a thread for the update_info loop
+        update_thread = threading.Thread(target=self.update_info)
+        update_thread.start()
+        # Wait for thread to complete
+        update_thread.join()
 
 if __name__ == "__main__":
     InfoSender().main()
