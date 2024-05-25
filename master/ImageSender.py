@@ -5,8 +5,9 @@ from cli import get_arguments
 from database.Repository import Repository
 from database.RedisDB import Redis
 
+
 class ImageSender:
-    def __init__(self, repository:Repository) -> None:
+    def __init__(self, repository: Repository) -> None:
         self.args = get_arguments()
         self.db = repository
 
@@ -27,8 +28,21 @@ class ImageSender:
             print(result.text)
             raise Exception(f"Failed to pull image: {data}. {result.status_code}")
 
-    def main(self)-> None:
-        self.send_image(self.find_worker())
+    def run_image(self, worker_url: str) -> None:
+        data = self.args.image_name
+        result = self.post(f"{worker_url}/run_image", data)
+
+        if result.status_code == 200:
+            print("Successfully ran image")
+        else:
+            print(result.text)
+            raise Exception(f"Failed to run image: {data}. {result.status_code}")
+
+    def main(self) -> None:
+        worker_url = self.find_worker()
+        self.send_image(worker_url)
+        self.run_image(worker_url)
+
 
 if __name__ == "__main__":
     ImageSender(repository=Redis()).main()

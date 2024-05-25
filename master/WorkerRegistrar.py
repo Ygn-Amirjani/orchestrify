@@ -2,6 +2,7 @@ from flask_restful import Resource, reqparse
 from typing import Tuple, Dict, Any
 from database.Repository import Repository
 
+
 class WorkerRegistrar(Resource):
     def __init__(self, repository: Repository) -> None:
         self.repository = repository
