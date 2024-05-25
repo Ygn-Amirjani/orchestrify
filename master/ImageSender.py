@@ -1,9 +1,6 @@
 import requests
 import random
-from master.cli import get_arguments
 from master.database.Repository import Repository
-from master.database.RedisDB import Redis
-from master.conf.config import CONFIG
 
 class ImageSender:
     def __init__(self, repository:Repository, args: str, port: str, path: str) -> None:
@@ -30,11 +27,3 @@ class ImageSender:
 
     def main(self)-> None:
         self.send_image(self.find_worker())
-
-if __name__ == "__main__":
-    repository = Redis()
-    args = get_arguments()
-    port = CONFIG.get('routes', {}).get('worker', {}).get('port')
-    path = CONFIG.get('routes', {}).get('worker', {}).get('pull')
-    imageSender = ImageSender(repository, args, port, path)
-    imageSender.main()
