@@ -3,7 +3,8 @@
     "port": "18081",
 	"routes":{
 		"worker":{
-			"pull": "/pull_image"
+			"pull": "/pull_image",
+			"run": "/run_image"
 		},
 		"master":{
 			"register": "/worker"

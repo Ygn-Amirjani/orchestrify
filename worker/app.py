@@ -6,6 +6,7 @@ from flask_restful import Api
 from worker.conf.config import CONFIG
 from worker.ImagePuller import ImagePuller
 from worker.InfoSender import InfoSender
+from worker.ImageRunner import ImageRunner
 from worker.cli import get_arguments
 
 app = Flask(__name__)
@@ -14,10 +15,8 @@ api = Api(app)
 app.debug = True
 
 # Add the resource to the API
-api.add_resource(
-    ImagePuller,
-    CONFIG.get('routes', {}).get('worker', {}).get('pull')
-)
+api.add_resource(ImagePuller, CONFIG.get("routes", {}).get("worker", {}).get("pull"))
+api.add_resource(ImageRunner, CONFIG.get("routes", {}).get("worker", {}).get("run"))
 
 def start_info_sender(args):
     worker_id = str(uuid.uuid4())

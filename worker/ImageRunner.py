@@ -1,3 +1,5 @@
+import docker.models
+import docker.models.containers
 from flask import request
 from flask_restful import Resource
 from typing import Any, Dict
@@ -5,7 +7,7 @@ from typing import Any, Dict
 import docker
 
 
-class ImagePuller(Resource):
+class ImageRunner(Resource):
     def post(self) -> Dict[str, Any]:
         try:
             image_name = request.get_json()
@@ -15,13 +17,20 @@ class ImagePuller(Resource):
             # Create a Docker client
             client = docker.from_env()
             # Pull the image
-            image = client.images.pull(image_name)
-            # Print the pulled image details
-            print(f"Successfully pulled image: {image_name}")
-            print(f"Image ID: {image.id}")
-            print(f"Tags: {', '.join(image.tags)}")
+            container: docker.models.containers.Container = client.containers.run(
+                image_name, detach=True
+            )
 
-            return {"status": "ok", "image": image_name}, 200
+            # Print the pulled image details
+            print(f"Successfully run image: {image_name}")
+            print(f"Container ID: {container.id}")
+            print(container.logs().decode("utf-8"))
+
+            return {
+                "status": "ok",
+                "image": image_name,
+                "container_id": container.id,
+            }, 200
         except docker.errors.APIError as e:
             return {
                 "status": "error",
