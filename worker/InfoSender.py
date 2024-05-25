@@ -7,10 +7,10 @@ import threading
 from worker.conf.config import CONFIG
 
 class InfoSender:
-    def __init__(self) -> None:
-        self.args = get_arguments()
-        self.worker_id = str(uuid.uuid4())
-        self.register_path = CONFIG.get('routes', {}).get('master', {}).get('register')
+    def __init__(self, worker_id: str, args: str, path: str) -> None:
+        self.worker_id = worker_id
+        self.args = args
+        self.path = path
 
     def post(self, url: str, data: dict) -> requests.Response:
         return requests.post(url, json=data)
@@ -31,7 +31,7 @@ class InfoSender:
         data = self.get_worker_data()
         data["id"] = self.worker_id
 
-        result = self.post(f"{self.args.master_ip}{self.register_path}", data)
+        result = self.post(f"{self.args.master_ip}{self.path}", data)
         if result.status_code == 200:
             print("Worker registered successfully")
         else:
@@ -44,7 +44,7 @@ class InfoSender:
         while True:
             data = self.get_worker_data()
 
-            result = self.put(f"{self.args.master_ip}{self.register_path}/{self.worker_id}", data)
+            result = self.put(f"{self.args.master_ip}{self.path}/{self.worker_id}", data)
             if result.status_code == 200:
                 print("Worker updated successfully")
             else:
@@ -62,4 +62,8 @@ class InfoSender:
         update_thread.join()
 
 if __name__ == "__main__":
-    InfoSender().main()
+    worker_id = str(uuid.uuid4())
+    args = get_arguments()
+    path = CONFIG.get('routes', {}).get('master', {}).get('register')
+    infoSender = InfoSender(worker_id, args, path)
+    infoSender.main()
