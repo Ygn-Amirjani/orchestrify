@@ -1,13 +1,13 @@
-from worker.cli import get_arguments
-import psutil , socket
+# InfoSender.py
+import psutil
+import socket
 import requests
-import uuid, time
-import threading
-
+import time
+import threading, argparse
 from worker.conf.config import CONFIG
 
 class InfoSender:
-    def __init__(self, worker_id: str, args: str, path: str) -> None:
+    def __init__(self, worker_id: str, args: argparse.Namespace, path: str) -> None:
         self.worker_id = worker_id
         self.args = args
         self.path = path
@@ -60,10 +60,3 @@ class InfoSender:
         update_thread.start()
         # Wait for thread to complete
         update_thread.join()
-
-if __name__ == "__main__":
-    worker_id = str(uuid.uuid4())
-    args = get_arguments()
-    path = CONFIG.get('routes', {}).get('master', {}).get('register')
-    infoSender = InfoSender(worker_id, args, path)
-    infoSender.main()
