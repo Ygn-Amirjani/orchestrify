@@ -7,6 +7,14 @@
 			"update": "/worker/<string:worker_id>",
 			"list":"/workers",
 			"info":"/worker/<string:worker_id>"
+		},
+		"worker":{
+			"port": "18081",
+			"pull": "/pull_image"
 		}
+	},
+    "redis": {
+        "host": "localhost",
+        "port": 6379
 	}
 }

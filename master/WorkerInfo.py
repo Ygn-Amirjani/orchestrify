@@ -1,6 +1,6 @@
 from flask_restful import Resource
 from typing import Tuple, Dict, Any
-from database.Repository import Repository
+from master.database.Repository import Repository
 
 class WorkerInfo(Resource):
     def __init__(self, repository: Repository) -> None:

@@ -4,6 +4,9 @@
 	"routes":{
 		"worker":{
 			"pull": "/pull_image"
+		},
+		"master":{
+			"register": "/worker"
 		}
 	}
 }

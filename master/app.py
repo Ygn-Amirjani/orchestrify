@@ -1,17 +1,13 @@
 from flask import Flask
 from flask_restful import Api
-import json
+from master.conf.config import CONFIG
 
-from WorkerRegistrar import WorkerRegistrar
-from WorkerUpdater import WorkerUpdater
-from WorkersList import WorkersList
-from WorkerInfo import WorkerInfo
+from master.WorkerRegistrar import WorkerRegistrar
+from master.WorkerUpdater import WorkerUpdater
+from master.WorkersList import WorkersList
+from master.WorkerInfo import WorkerInfo
 
-from database.RedisDB import Redis
-
-# Load config file
-with open('master/conf/config.json', mode='r') as config_file:
-    CONFIG = json.load(config_file)
+from master.database.RedisDB import Redis
 
 
 app = Flask(__name__)

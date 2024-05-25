@@ -1,6 +1,6 @@
 from flask_restful import Resource
 from typing import Tuple, List
-from database.Repository import Repository
+from master.database.Repository import Repository
 
 class WorkersList(Resource):
     def __init__(self, repository: Repository) -> None:

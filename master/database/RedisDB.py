@@ -1,10 +1,11 @@
-from database.Repository import Repository
+from master.database.Repository import Repository
 from typing import Dict, List
+from master.conf.config import REDIS_HOST, REDIS_PORT
 import redis
 
 class Redis(Repository):
     def __init__(self) -> None:
-        self.redis_conn = redis.Redis(host='localhost', port=6379)
+        self.redis_conn = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
 
     def create(self, key: str, data: Dict[str, str]) -> None:
         """Save data to Redis under the given key."""

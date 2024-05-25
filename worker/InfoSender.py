@@ -1,12 +1,15 @@
-from cli import get_arguments
+from worker.cli import get_arguments
 import psutil , socket
 import requests
 import uuid, time
+
+from worker.conf.config import CONFIG
 
 class InfoSender:
     def __init__(self) -> None:
         self.args = get_arguments()
         self.worker_id = str(uuid.uuid4())
+        self.register_path = CONFIG.get('routes', {}).get('master', {}).get('register')
 
     def post(self, url: str, data: dict) -> requests.Response:
         return requests.post(url, json=data)
@@ -27,7 +30,7 @@ class InfoSender:
         data = self.get_worker_data()
         data["id"] = self.worker_id
 
-        result = self.post(f"{self.args.master_ip}/worker", data)
+        result = self.post(f"{self.args.master_ip}{self.register_path}", data)
         if result.status_code == 200:
             print("Worker registered successfully")
         else:
@@ -37,7 +40,7 @@ class InfoSender:
     def update_info(self):
         data = self.get_worker_data()
 
-        result = self.put(f"{self.args.master_ip}/worker/{self.worker_id}", data)
+        result = self.put(f"{self.args.master_ip}{self.register_path}/{self.worker_id}", data)
         if result.status_code == 200:
             print("Worker updated successfully")
         else:
