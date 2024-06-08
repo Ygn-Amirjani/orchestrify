@@ -3,3 +3,4 @@ psutil
 flask
 flask_restful
 docker
+redis
