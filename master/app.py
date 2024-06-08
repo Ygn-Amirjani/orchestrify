@@ -39,6 +39,7 @@ def main():
     if args.image_name:
         image_sender_thread = threading.Thread(target=start_image_sender, args=(args,))
         image_sender_thread.start()
+        image_sender_thread.join()
     else:
         # Run the Flask app in the main thread
         app.run(host=CONFIG.get('host'), port=CONFIG.get('port'))

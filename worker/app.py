@@ -29,6 +29,7 @@ def main():
     if args.master_ip:
             info_sender_thread = threading.Thread(target=start_info_sender, args=(args,))
             info_sender_thread.start()
+            info_sender_thread.join()
     else:
         # Run the Flask app in the main thread
         app.run(host=CONFIG.get('host'), port=CONFIG.get('port'))
