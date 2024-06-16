@@ -19,13 +19,26 @@ app.debug = True
 
 db = Redis()
 
-master_path = CONFIG.get('routes', {}).get('master', {})
-kwargs = {'repository': db}
-
-api.add_resource(WorkerRegistrer, master_path.get('register'), resource_class_kwargs=kwargs)
-api.add_resource(WorkerUpdater, master_path.get('update'), resource_class_kwargs=kwargs)
-api.add_resource(WorkersList, master_path.get('list'), resource_class_kwargs=kwargs)
-api.add_resource(WorkerInfo, master_path.get('info'), resource_class_kwargs=kwargs)
+api.add_resource(
+    WorkerRegistrer,
+    CONFIG.get('routes', {}).get('master', {}).get('register'), 
+    resource_class_kwargs={'repository': db}
+)
+api.add_resource(
+    WorkerUpdater,
+    CONFIG.get('routes', {}).get('master', {}).get('update'),
+    resource_class_kwargs={'repository': db}
+)
+api.add_resource(
+    WorkersList,
+    CONFIG.get('routes', {}).get('master', {}).get('list'),
+    resource_class_kwargs={'repository': db}
+)
+api.add_resource(
+    WorkerInfo,
+    CONFIG.get('routes', {}).get('master', {}).get('info'),
+    resource_class_kwargs={'repository': db}
+)
 
 def start_image_sender(args):
     port = CONFIG.get('routes', {}).get('worker', {}).get('port')

@@ -15,8 +15,14 @@ api = Api(app)
 app.debug = True
 
 # Add the resource to the API
-api.add_resource(ImagePuller, CONFIG.get("routes", {}).get("worker", {}).get("pull"))
-api.add_resource(ImageRunner, CONFIG.get("routes", {}).get("worker", {}).get("run"))
+api.add_resource(
+    ImagePuller,
+    CONFIG.get("routes", {}).get("worker", {}).get("pull")
+)
+api.add_resource(
+    ImageRunner,
+    CONFIG.get("routes", {}).get("worker", {}).get("run")
+)
 
 def start_info_sender(args):
     worker_id = str(uuid.uuid4())

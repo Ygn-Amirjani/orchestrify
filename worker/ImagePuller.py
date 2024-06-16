@@ -4,7 +4,6 @@ from typing import Any, Dict
 
 import docker
 
-
 class ImagePuller(Resource):
     def post(self) -> Dict[str, Any]:
         try:
