@@ -3,15 +3,10 @@
     "port": "18080",
 	"routes":{
 		"master":{
-			"register": "/worker",
-			"update": "/worker/<string:worker_id>",
-			"list":"/workers",
-			"info":"/worker/<string:worker_id>"
-		},
-		"worker":{
-			"port": "18081",
-			"pull": "/pull_image",
-			"run": "/run_image"
+			"worker_register": "/worker",
+			"worker_updater": "/worker/<string:worker_id>",
+			"workers_list":"/workers",
+			"worker_info":"/worker/<string:worker_id>"
 		}
 	},
     "redis": {

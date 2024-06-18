@@ -1,3 +1,4 @@
+import docker.errors
 from flask import request
 from flask_restful import Resource
 from typing import Any, Dict
@@ -6,6 +7,7 @@ import docker
 
 class ImagePuller(Resource):
     def post(self) -> Dict[str, Any]:
+        """Handle POST request to pull a Docker image."""
         try:
             image_name = request.get_json()
             if not image_name:
@@ -13,8 +15,10 @@ class ImagePuller(Resource):
 
             # Create a Docker client
             client = docker.from_env()
+
             # Pull the image
             image = client.images.pull(image_name)
+
             # Print the pulled image details
             print(f"Successfully pulled image: {image_name}")
             print(f"Image ID: {image.id}")

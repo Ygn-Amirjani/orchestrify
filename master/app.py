@@ -12,49 +12,58 @@ from master.cli import get_arguments
 
 from master.database.RedisDB import Redis
 
+# Initialize Flask
 app = Flask(__name__)
 api = Api(app)
 
+# Enable debug mode for the Flask app
 app.debug = True
 
+#  Instantiate the Redis class and creating a connection to the Redis database
 db = Redis()
 
+# Add routes for resources based on configuration
 api.add_resource(
     WorkerRegistrer,
-    CONFIG.get('routes', {}).get('master', {}).get('register'), 
+    CONFIG.get('routes', {}).get('master', {}).get('worker_register'), 
     resource_class_kwargs={'repository': db}
 )
 api.add_resource(
     WorkerUpdater,
-    CONFIG.get('routes', {}).get('master', {}).get('update'),
+    CONFIG.get('routes', {}).get('master', {}).get('worker_updater'),
     resource_class_kwargs={'repository': db}
 )
 api.add_resource(
     WorkersList,
-    CONFIG.get('routes', {}).get('master', {}).get('list'),
+    CONFIG.get('routes', {}).get('master', {}).get('workers_list'),
     resource_class_kwargs={'repository': db}
 )
 api.add_resource(
     WorkerInfo,
-    CONFIG.get('routes', {}).get('master', {}).get('info'),
+    CONFIG.get('routes', {}).get('master', {}).get('worker_info'),
     resource_class_kwargs={'repository': db}
 )
 
-def start_image_sender(args):
-    port = CONFIG.get('routes', {}).get('worker', {}).get('port')
-    pull_path = CONFIG.get('routes', {}).get('worker', {}).get('pull')
-    run_path = CONFIG.get('routes', {}).get('worker', {}).get('run')
-    imageHandler = ImageDeploymentHandler(db, args, port, pull_path, run_path)
+def start_image_deployment_handler(args) -> None:
+    """Start ImageDeploymentHandler instance in a separate thread."""
+    imageHandler = ImageDeploymentHandler(db, args)
     imageHandler.main()
 
-def main():
+def main() -> None:
+    """
+    If --image-name is provided in command-line arguments,start function in a thread.
+    Otherwise, run the Flask app on specified host and port.
+    """
     args = get_arguments()
     if args.image_name:
-        image_sender_thread = threading.Thread(target=start_image_sender, args=(args,))
-        image_sender_thread.start()
+        # Create a thread for starting InfoSender
+        image_sender_thread = threading.Thread(target=start_image_deployment_handler, args=(args,))
+        image_sender_thread.start() # Start InfoSender thread
+
+        # Wait for InfoSender thread to complete
         image_sender_thread.join()
     else:
-        # Run the Flask app in the main thread
+        # Run the Flask app in the main thread using specified host and port from configuration
         app.run(host=CONFIG.get('host'), port=CONFIG.get('port'))
 
 if __name__ == "__main__":

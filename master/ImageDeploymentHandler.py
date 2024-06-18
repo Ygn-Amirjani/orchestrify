@@ -1,22 +1,20 @@
 import requests
 import random
+import argparse
 from master.database.Repository import Repository
 
 class ImageDeploymentHandler:
-    def __init__(self, repository: Repository, args: str, 
-                port: str,pull_path: str, run_path: str) -> None:
-        self.args = args
-        self.db = repository
-        self.port = port
-        self.pull_path = pull_path
-        self.run_path = run_path
+    def __init__(self, repository: Repository, args: argparse.Namespace) -> None:
+        self.repository = repository
+        self.args = args    # Store command-line arguments
 
     def post(self, url: str, data: str) -> requests.Response:
+        """Perform a POST request."""
         return requests.post(url, json=data)
 
     def select_worker(self) -> dict:
-        """Selects a random worker from the database and returns its details."""
-        all_keys = self.db.read_all()
+        """Select a random worker from the database and return its details."""
+        all_keys = self.repository.read_all()
         workers = [key for key in all_keys
             if key.startswith("worker:") and key.endswith("status")]
         if not workers:
@@ -24,15 +22,16 @@ class ImageDeploymentHandler:
         return random.choice(workers)
 
     def get_worker_url(self) -> str:
-        """Constructs and returns the URL for a randomly selected worker."""
-        worker = self.db.read(self.select_worker())
+        """Construct and return the URL for a randomly selected worker."""
+        worker = self.repository.read(self.select_worker())
         if 'ip' not in worker:
             raise KeyError("Selected worker data does not contain an 'ip' field.")
-        return f"http://{worker['ip']}:{self.port}"
+        return f"http://{worker['ip']}:18081"
 
     def send_image(self, worker_url: str) -> None:
+        """Send the image to the worker for pulling."""
         data = self.args.image_name
-        result = self.post(f"{worker_url}{self.pull_path}", data)
+        result = self.post(f"{worker_url}/pull_image", data)
 
         if result.status_code == 200:
             print("Successfully pulled image")
@@ -41,8 +40,9 @@ class ImageDeploymentHandler:
             raise Exception(f"Failed to pull image: {data}. {result.status_code}")
 
     def run_image(self, worker_url: str) -> str:
+        """Run the image on the worker."""
         data = self.args.image_name
-        result = self.post(f"{worker_url}{self.run_path}", data)
+        result = self.post(f"{worker_url}/run_image", data)
 
         if result.status_code == 200:
             print("Successfully ran image")
@@ -51,17 +51,19 @@ class ImageDeploymentHandler:
             print(result.text)
             raise Exception(f"Failed to run image: {data}. {result.status_code}")
 
-    def save_container_info(self, container_id: str):
-        worker_info = self.db.read(self.select_worker())
+    def save_container_info(self, container_id: str) -> None:
+        """Save the container information to the repository."""
+        worker_info = self.repository.read(self.select_worker())
         container_info = {
             "Image_name": self.args.image_name,
             "Container_id": container_id,
             "Container_ip": worker_info['ip']
         }
 
-        self.db.create(f"worker:{worker_info['id']}:container", container_info)
+        self.repository.create(f"worker:{worker_info['id']}:container", container_info)
 
     def main(self) -> None:
+        """Main method to manage the deployment process."""
         worker_url = self.get_worker_url()
         self.send_image(worker_url)
         container_id = self.run_image(worker_url)

@@ -8,6 +8,7 @@ import docker
 
 class ImageRunner(Resource):
     def post(self) -> Dict[str, Any]:
+        """Handle POST request to run a Docker image."""
         try:
             image_name = request.get_json()
             if not image_name:
@@ -15,12 +16,13 @@ class ImageRunner(Resource):
 
             # Create a Docker client
             client = docker.from_env()
-            # Pull the image
+
+            # Run the container
             container: docker.models.containers.Container = client.containers.run(
                 image_name, detach=True
             )
 
-            # Print the pulled image details
+            # Print the running container details
             print(f"Successfully run image: {image_name}")
             print(f"Container ID: {container.id}")
             print(container.logs().decode("utf-8"))
@@ -33,5 +35,5 @@ class ImageRunner(Resource):
         except docker.errors.APIError as e:
             return {
                 "status": "error",
-                "message": f"Failed to pull image: {image_name}. Error: {e}",
+                "message": f"Failed to run image: {image_name}. Error: {e}",
             }, 500

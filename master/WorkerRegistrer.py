@@ -11,8 +11,8 @@ class WorkerRegistrer(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument("id", type=str, required=True)
         parser.add_argument("ip", type=str, required=True)
-        parser.add_argument("ram", type=int, required=True)
-        parser.add_argument("cpu", type=int, required=True)
+        parser.add_argument("ram-usage", type=int, required=True)
+        parser.add_argument("cpu-usage", type=int, required=True)
         parser.add_argument("status", type=str, required=True)
         args = parser.parse_args()
 
