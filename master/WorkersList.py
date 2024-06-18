@@ -8,4 +8,7 @@ class WorkersList(Resource):
 
     def get(self) -> Tuple[List[str], int]:
         """List of all registered workers"""
-        return  self.repository.read_all(), 200
+        all_keys = self.repository.read_all()
+        worker_keys = [key for key in all_keys
+            if key.startswith("worker:") and key.endswith("status")]
+        return worker_keys, 200
