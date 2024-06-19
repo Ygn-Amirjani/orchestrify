@@ -64,7 +64,18 @@ class ImageDeploymentHandler:
 
     def run_image(self, worker_url: str) -> str:
         """Run the image on the worker."""
-        data = self.args.image_name
+        data = {
+            "image_name": self.args.image_name,
+            "name": self.args.name,
+            "network_mode": self.args.network,
+            "port": self.args.port,
+            "environment": self.args.environment
+        }
+
+        # Remove keys with None values
+        data = {k: v for k, v in data.items() if v is not None}
+
+        # Run container on best worker
         result = self.post(f"{worker_url}/run_image", data)
 
         if result.status_code == 200:
