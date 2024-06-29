@@ -8,6 +8,8 @@ from master.WorkerUpdater import WorkerUpdater
 from master.WorkersList import WorkersList
 from master.WorkerInfo import WorkerInfo
 from master.ImageDeploymentHandler import ImageDeploymentHandler
+from master.ContainersList import ContainersList
+from master.ContainerInfo import ContainerInfo
 from master.cli import get_arguments
 
 from master.database.RedisDB import Redis
@@ -41,6 +43,16 @@ api.add_resource(
 api.add_resource(
     WorkerInfo,
     CONFIG.get('routes', {}).get('master', {}).get('worker_info'),
+    resource_class_kwargs={'repository': db}
+)
+api.add_resource(
+    ContainersList,
+    CONFIG.get('routes', {}).get('master', {}).get('containers_list'),
+    resource_class_kwargs={'repository': db}
+)
+api.add_resource(
+    ContainerInfo,
+    CONFIG.get('routes', {}).get('master', {}).get('container_info'),
     resource_class_kwargs={'repository': db}
 )
 
