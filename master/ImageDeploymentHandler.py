@@ -1,5 +1,4 @@
 import requests
-import random
 import argparse
 from master.database.Repository import Repository
 
@@ -62,7 +61,7 @@ class ImageDeploymentHandler:
             print(result.text)
             raise Exception(f"Failed to pull image: {data}. {result.status_code}")
 
-    def run_image(self, worker_url: str) -> str:
+    def run_image(self, worker_url: str) -> dict:
         """Run the image on the worker."""
         data = {
             "image_name": self.args.image_name,
@@ -80,25 +79,26 @@ class ImageDeploymentHandler:
 
         if result.status_code == 200:
             print("Successfully ran image")
-            return result.json().get("container_id")
+
+            # Extract and save worker IP
+            data["worker_ip"] = worker_url.split("//")[1].split(":")[0]
+            data.update({"id": result.json().get("container_id")})
+            return data
         else:
             print(result.text)
             raise Exception(f"Failed to run image: {data}. {result.status_code}")
 
-    def save_container_info(self, container_id: str) -> None:
+    def save_container_info(self, container_info: dict) -> None:
         """Save the container information to the repository."""
-        worker_info = self.repository.read(self.select_worker())
-        container_info = {
-            "Image_name": self.args.image_name,
-            "Container_id": container_id,
-            "Container_ip": worker_info['ip']
-        }
+        if container_info.get('port'):
+            host_port = next(iter(container_info['port'].values()))
+            container_info['port'] = host_port 
 
-        self.repository.create(f"worker:{worker_info['id']}:container", container_info)
+        self.repository.create(f"container:{container_info['id']}:status", container_info)
 
     def main(self) -> None:
         """Main method to manage the deployment process."""
         worker_url = self.get_worker_url()
         self.send_image(worker_url)
-        container_id = self.run_image(worker_url)
-        self.save_container_info(container_id)
+        container_info = self.run_image(worker_url)
+        self.save_container_info(container_info)
