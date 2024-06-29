@@ -102,3 +102,6 @@ class ImageDeploymentHandler:
         self.send_image(worker_url)
         container_info = self.run_image(worker_url)
         self.save_container_info(container_info)
+
+        if container_info.get('port'):
+            print (f'"container_url" => {container_info["worker_ip"]}:{container_info["port"]}')
