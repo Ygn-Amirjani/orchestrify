@@ -1,8 +1,12 @@
 from flask import request, Response, jsonify
 from flask_restful import Resource
+from master.conf.config import CONFIG
 import requests
 
 class Proxy(Resource):
+    def __init__(self, master_url: str) -> None:
+        self.master_url = master_url
+
     def post(self):
         try:
             data = request.json
@@ -48,6 +52,8 @@ class Proxy(Resource):
                     headers=headers
                 )
             else:
+                notify_response = requests.post(f'{self.master_url}/notification', json=url)
+                notify_response.raise_for_status()
                 return jsonify({'message': 'Response time exceeds 100 milliseconds. Request not sent.'})
 
         except Exception as e:

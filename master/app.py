@@ -10,6 +10,7 @@ from master.WorkerInfo import WorkerInfo
 from master.ImageDeploymentHandler import ImageDeploymentHandler
 from master.ContainersList import ContainersList
 from master.ContainerInfo import ContainerInfo
+from master.NotificationHandler import NotificationHandler
 from master.cli import get_arguments
 
 from master.database.RedisDB import Redis
@@ -53,6 +54,11 @@ api.add_resource(
 api.add_resource(
     ContainerInfo,
     CONFIG.get('routes', {}).get('master', {}).get('container_info'),
+    resource_class_kwargs={'repository': db}
+)
+api.add_resource(
+    NotificationHandler,
+    CONFIG.get('routes', {}).get('master', {}).get('notification'),
     resource_class_kwargs={'repository': db}
 )
 

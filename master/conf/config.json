@@ -8,7 +8,8 @@
 			"workers_list":"/workers",
 			"worker_info":"/worker/<string:worker_id>",
 			"containers_list": "/containers",
-			"container_info": "/container/<string:container_id>"
+			"container_info": "/container/<string:container_id>",
+			"notification": "/notification"
 		}
 	},
     "redis": {

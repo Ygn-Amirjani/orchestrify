@@ -9,7 +9,12 @@ api = Api(app)
 
 app.debug = True
 
-api.add_resource(Proxy, CONFIG.get('loadbalancer', {}).get('proxy'))
+master_url = f'http://{CONFIG.get('host')}:{CONFIG.get('port')}'
+api.add_resource(
+    Proxy,
+    CONFIG.get('loadbalancer', {}).get('proxy'),
+    resource_class_kwargs={'master_url': master_url}    
+)
 
 if __name__ == '__main__':
     app.run(
