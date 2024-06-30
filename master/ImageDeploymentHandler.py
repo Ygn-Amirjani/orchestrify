@@ -12,36 +12,36 @@ class ImageDeploymentHandler:
         return requests.post(url, json=data)
 
     def select_worker(self) -> dict:
-            """Select a worker from the database with the least RAM and CPU usage and return its details."""
-            all_keys = self.repository.read_all()
-            workers = [key for key in all_keys 
-                    if key.startswith("worker:") and key.endswith("status")]
+        """Select a worker from the database with the least RAM and CPU usage and return its details."""
+        all_keys = self.repository.read_all()
+        workers = [key for key in all_keys 
+                if key.startswith("worker:") and key.endswith("status")]
 
-            if not workers:
-                raise ValueError("No workers available in the database.")
+        if not workers:
+            raise ValueError("No workers available in the database.")
 
-            best_worker = None
-            min_resources_usage = float('inf')
+        best_worker = None
+        min_resources_usage = float('inf')
 
-            for worker_key in workers:
-                worker = self.repository.read(worker_key)
-                ram_usage = worker.get('ram-usage', float('inf'))
-                cpu_usage = worker.get('cpu-usage', float('inf'))
-                status = worker.get('status', 'unknown')
+        for worker_key in workers:
+            worker = self.repository.read(worker_key)
+            ram_usage = worker.get('ram-usage', float('inf'))
+            cpu_usage = worker.get('cpu-usage', float('inf'))
+            status = worker.get('status', 'unknown')
 
-                # Only consider workers that are in 'running' status
-                if status != "RUNNING":
-                    continue
+            # Only consider workers that are in 'running' status
+            if status != "RUNNING":
+                continue
 
-                total_usage = float(ram_usage + cpu_usage)
-                if total_usage < min_resources_usage:
-                    min_resources_usage = total_usage
-                    best_worker = worker_key
+            total_usage = float(ram_usage + cpu_usage)
+            if total_usage < min_resources_usage:
+                min_resources_usage = total_usage
+                best_worker = worker_key
 
-            if best_worker is None:
-                raise ValueError("No suitable worker found based on RAM and CPU usage.")
+        if best_worker is None:
+            raise ValueError("No suitable worker found based on RAM and CPU usage.")
 
-            return best_worker
+        return best_worker
 
     def get_worker_url(self) -> str:
         """Construct and return the URL for a randomly selected worker."""
