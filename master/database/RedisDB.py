@@ -12,7 +12,9 @@ class Redis(Repository):
 
     def create(self, key: str, data: Dict[str, str]) -> None:
         """Save data to Redis under the given key."""
-        self.redis_conn.hmset(key, data)
+        # Convert all values to strings
+        data = {k: str(v) for k, v in data.items()}
+        self.redis_conn.hset(key, mapping=data)
 
     def read(self, key: str) -> Dict[str, str]:
         """Load data from Redis using the given key."""
@@ -26,7 +28,9 @@ class Redis(Repository):
 
     def update(self, key: str, data: Dict[str, str]) -> None:
         """Update data in Redis under the given key"""
-        self.redis_conn.hmset(key, data)
+        # Convert all values to strings
+        data = {k: str(v) for k, v in data.items()}
+        self.redis_conn.hset(key, mapping=data)
 
     def delete(self, key: str) -> None:
         """Delete data from Redis using the given key."""

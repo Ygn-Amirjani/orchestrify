@@ -5,9 +5,9 @@ def get_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--image-name", help="Name of the image")
     parser.add_argument("--name", type=str, help="Name of the container")
-    parser.add_argument("--network", help="Name of the networke")
+    parser.add_argument("--network", help="Name of the network")
     parser.add_argument("-p", "--port", help="Number of the port")
-    parser.add_argument("-e", "--environment", help="Name of the env")
+    parser.add_argument("-e", "--environment", action='append', help="Environment variables in key:value format")
     args = parser.parse_args()
 
     if args.port:
@@ -18,10 +18,13 @@ def get_arguments() -> argparse.Namespace:
             raise ValueError("Invalid format for port. Use host:container format.")
 
     if args.environment:
-        try:
-            key, value = args.environment.split(":")
-            args.environment = {key:value}
-        except ValueError:
-            raise ValueError("Invalid format for environment variable. Use key:value format.")
+        env_dict = {}
+        for env in args.environment:
+            try:
+                key, value = env.split(":", 1)  # Split only on the first colon
+                env_dict[key] = value
+            except ValueError:
+                raise ValueError(f"Invalid format for environment variable: '{env}'. Use key:value format.")
+        args.environment = env_dict
 
     return args

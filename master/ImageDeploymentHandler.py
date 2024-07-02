@@ -93,6 +93,7 @@ class ImageDeploymentHandler:
         if container_info.get('port'):
             host_port = next(iter(container_info['port'].values()))
             container_info['port'] = host_port 
+            print (f'"container_url" => {container_info["worker_ip"]}:{container_info["port"]}')
 
         self.repository.create(f"container:{container_info['id']}:status", container_info)
 
@@ -102,6 +103,3 @@ class ImageDeploymentHandler:
         self.send_image(worker_url)
         container_info = self.run_image(worker_url)
         self.save_container_info(container_info)
-
-        if container_info.get('port'):
-            print (f'"container_url" => {container_info["worker_ip"]}:{container_info["port"]}')
