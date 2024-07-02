@@ -8,6 +8,7 @@ from master.WorkerUpdater import WorkerUpdater
 from master.WorkersList import WorkersList
 from master.WorkerInfo import WorkerInfo
 from master.ImageDeploymentHandler import ImageDeploymentHandler
+from master.WorkerSelector import WorkerSelector
 from master.ContainersList import ContainersList
 from master.ContainerInfo import ContainerInfo
 from master.NotificationHandler import NotificationHandler
@@ -64,7 +65,8 @@ api.add_resource(
 
 def start_image_deployment_handler(args) -> None:
     """Start ImageDeploymentHandler instance in a separate thread."""
-    imageHandler = ImageDeploymentHandler(db, args)
+    workerSelector = WorkerSelector(db)
+    imageHandler = ImageDeploymentHandler(db, args, workerSelector.main())
     imageHandler.main()
 
 def main() -> None:
