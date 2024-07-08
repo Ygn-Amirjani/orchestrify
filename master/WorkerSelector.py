@@ -35,8 +35,8 @@ class WorkerSelector:
 
         if best_worker is None:
             raise ValueError("No suitable worker found based on RAM and CPU usage.")
-
-        return best_worker
+        
+        return best_worker.split(':')[1]
 
     def get_worker_url(self) -> str:
         """Construct and return the URL for a randomly selected worker."""
