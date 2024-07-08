@@ -15,7 +15,7 @@ class WorkerUpdater(Resource):
         parser.add_argument("status", type=str, required=True)
         args = parser.parse_args()
 
-        worker_status = f"worker:{worker_id}:status"
+        worker_status = f"worker:{worker_id}:{args["ip"]}"
         worker_data = self.repository.read(worker_status)
         if not worker_data:
             return {"status": "error", "message": "Worker not found"}, 404

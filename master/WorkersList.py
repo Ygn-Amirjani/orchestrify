@@ -11,6 +11,6 @@ class WorkersList(Resource):
         all_keys = self.repository.read_all()
 
         worker_keys = [key for key in all_keys
-            if key.startswith("worker:") and key.endswith("status")]
+            if key.startswith("worker:")]
 
         return worker_keys, 200

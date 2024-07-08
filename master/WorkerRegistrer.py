@@ -16,6 +16,6 @@ class WorkerRegistrer(Resource):
         parser.add_argument("status", type=str, required=True)
         args = parser.parse_args()
 
-        self.repository.create(f"worker:{args["id"]}:status", args)
+        self.repository.create(f"worker:{args["id"]}:{args["ip"]}", args)
 
         return {"status": "ok", "id": args["id"]}, 200
