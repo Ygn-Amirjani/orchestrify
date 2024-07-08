@@ -11,6 +11,6 @@ class ContainersList(Resource):
         all_keys = self.repository.read_all()
 
         container_keys = [key for key in all_keys
-            if key.startswith("container:") and key.endswith("status")]
+            if key.startswith("container:")]
 
         return container_keys, 200

@@ -49,6 +49,8 @@ class ImageRunner(Resource):
                 "status": "ok",
                 "image": image_name,
                 "container_id": container.id,
+                "container_name": container.name,
+                "container_status": container.status
             }, 200
         except docker.errors.APIError as e:
             return {

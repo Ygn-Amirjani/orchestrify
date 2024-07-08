@@ -41,10 +41,14 @@ class ImageDeploymentHandler:
 
         if result.status_code == 200:
             print("Successfully ran image")
+            print(f"container name is: {result.json().get("container_name")}")
 
-            # Extract and save worker IP
-            data["worker_ip"] = worker_url.split("//")[1].split(":")[0]
-            data.update({"id": result.json().get("container_id")})
+            data.update({
+                "worker_ip": worker_url.split("//")[1].split(":")[0],
+                "id": result.json().get("container_id"), 
+                "name": result.json().get("container_name"),
+                "status": result.json().get("container_status")
+            })
             return data
         else:
             print(result.text)
@@ -55,9 +59,10 @@ class ImageDeploymentHandler:
         if container_info.get('port'):
             host_port = next(iter(container_info['port'].values()))
             container_info['port'] = host_port 
-            print (f'"container_url" => {container_info["worker_ip"]}:{container_info["port"]}')
+            print (f'Container Url => {container_info["worker_ip"]}:{container_info["port"]}')
 
-        self.repository.create(f"container:{container_info['id']}:status", container_info)
+        key = f"{self.args.image_name}:{container_info['id'][0:13]}:{container_info['name']}"
+        self.repository.create(f"container:{key}", container_info)
 
     def main(self) -> None:
         """Main method to manage the deployment process."""
