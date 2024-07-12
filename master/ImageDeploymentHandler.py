@@ -58,8 +58,7 @@ class ImageDeploymentHandler:
         """Save the container information to the repository."""
         if container_info.get('port'):
             host_port = next(iter(container_info['port'].values()))
-            container_info['port'] = host_port 
-            print (f'Container Url => {container_info["worker_ip"]}:{container_info["port"]}')
+            print (f'Container Url => http://{container_info["worker_ip"]}:{host_port}')
 
         key = f"{self.args.image_name}:{container_info['id'][0:13]}:{container_info['name']}"
         self.repository.create(f"container:{key}", container_info)
