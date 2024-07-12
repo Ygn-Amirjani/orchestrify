@@ -8,6 +8,39 @@ class Proxy(Resource):
     def __init__(self, master_url: str) -> None:
         self.master_url = master_url
 
+    def find_container_url(self, container_info: dict):
+        ip = random.choice(container_info.get("ip"))
+        port = container_info.get("port")
+
+        return f"http://{ip}:{port}"
+
+    def send_request(self, data: dict, url: str):
+        method = data.get('method', 'GET').upper()
+        headers = data.get('headers', {})
+        payload = data.get('payload', {})
+
+        if method == 'GET':
+            return requests.get(url, headers=headers, params=payload)
+        elif method == 'POST':
+            return requests.post(url, headers=headers, json=payload)
+        elif method == 'PUT':
+            return requests.put(url, headers=headers, json=payload)
+        elif method == 'DELETE':
+            return requests.delete(url, headers=headers, json=payload)
+        else:
+            return Response('Unsupported HTTP method', status=400, content_type='text/plain')
+
+    def build_response(self, response):
+        excluded_headers = ['content-encoding', 'content-length', 'transfer-encoding', 'connection']
+        headers = [(name, value) for name, value in response.raw.headers.items()
+                   if name.lower() not in excluded_headers]
+
+        return Response(
+            response.content, 
+            status=response.status_code, 
+            headers=headers
+        )
+
     def post(self):
         try:
             data = request.json
@@ -18,49 +51,24 @@ class Proxy(Resource):
                     content_type='text/plain'
                 )
 
-            container_name = data['name']
-            method = data.get('method', 'GET').upper()
-            headers = data.get('headers', {})
-            payload = data.get('payload', {})
+            infoSender = ContainerInfoSender(data['name'], self.master_url)
+            container_info = infoSender.main()
 
-            # Send the request and measure response time
-            response = None
-            response_time = None
-
-            infoSender = ContainerInfoSender(container_name,self.master_url)
-            ip = random.choice(infoSender.main().get("ip"))
-            port = infoSender.main().get("port")
-            url = f"http://{ip}:{port}/"
-
-            if method == 'GET':
-                response = requests.get(url, headers=headers, params=payload)
-            elif method == 'POST':
-                response = requests.post(url, headers=headers, json=payload)
-            elif method == 'PUT':
-                response = requests.put(url, headers=headers, json=payload)
-            elif method == 'DELETE':
-                response = requests.delete(url, headers=headers, json=payload)
-            else:
-                return Response('Unsupported HTTP method', status=400, content_type='text/plain')
+            url = self.find_container_url(container_info)
+            response = self.send_request(data, url)
 
             # Convert to milliseconds
             response_time = response.elapsed.total_seconds() * 1000
 
             # Check if response time is less than or equal to 100 milliseconds
-            if response_time <= 100:
-                excluded_headers = ['content-encoding', 'content-length', 'transfer-encoding', 'connection']
-                headers = [(name, value) for name, value in response.raw.headers.items()
-                           if name.lower() not in excluded_headers]
-
-                return Response(
-                    response.content, 
-                    status=response.status_code, 
-                    headers=headers
-                )
+            if response_time >= 100:
+                return self.build_response(response)
             else:
-                notify_response = requests.post(f'{self.master_url}/notification', json=url)
-                notify_response.raise_for_status()
-                return jsonify({'message': 'Response time exceeds 100 milliseconds. Request not sent.'})
+                notify_response = requests.post(f'{self.master_url}/notification', json=container_info)
+                if notify_response.status_code == 200:
+                    return self.build_response(response) #Return the answer with the new container should be fixed
+                else:
+                    return notify_response.json()
 
         except Exception as e:
             return Response(str(e), status=500, content_type='text/plain')
