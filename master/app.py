@@ -12,6 +12,7 @@ from master.WorkerSelector import WorkerSelector
 from master.ContainersList import ContainersList
 from master.ContainerInfo import ContainerInfo
 from master.NotificationHandler import NotificationHandler
+from master.ContainerFetcher import ContainerFetcher
 from master.cli import get_arguments
 
 from master.database.RedisDB import Redis
@@ -60,6 +61,11 @@ api.add_resource(
 api.add_resource(
     NotificationHandler,
     CONFIG.get('routes', {}).get('master', {}).get('notification'),
+    resource_class_kwargs={'repository': db}
+)
+api.add_resource(
+    ContainerFetcher,
+    CONFIG.get('routes', {}).get('master', {}).get('Container_fetcher'),
     resource_class_kwargs={'repository': db}
 )
 

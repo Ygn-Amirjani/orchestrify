@@ -1,7 +1,8 @@
 from flask import request, Response, jsonify
 from flask_restful import Resource
-from master.conf.config import CONFIG
+from master.loadbalancer.ContainerInfoSender import ContainerInfoSender
 import requests
+import random
 
 class Proxy(Resource):
     def __init__(self, master_url: str) -> None:
@@ -10,14 +11,14 @@ class Proxy(Resource):
     def post(self):
         try:
             data = request.json
-            if not data or 'url' not in data:
+            if not data or 'name' not in data:
                 return Response(
-                    'URL not provided', 
+                    'image name not provided', 
                     status=400, 
                     content_type='text/plain'
                 )
 
-            url = data['url']
+            container_name = data['name']
             method = data.get('method', 'GET').upper()
             headers = data.get('headers', {})
             payload = data.get('payload', {})
@@ -25,6 +26,11 @@ class Proxy(Resource):
             # Send the request and measure response time
             response = None
             response_time = None
+
+            infoSender = ContainerInfoSender(container_name,self.master_url)
+            ip = random.choice(infoSender.main().get("ip"))
+            port = infoSender.main().get("port")
+            url = f"http://{ip}:{port}/"
 
             if method == 'GET':
                 response = requests.get(url, headers=headers, params=payload)

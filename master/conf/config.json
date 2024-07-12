@@ -9,7 +9,8 @@
 			"worker_info":"/worker/<string:worker_id>",
 			"containers_list": "/containers",
 			"container_info": "/container/<string:container_id>",
-			"notification": "/notification"
+			"notification": "/notification",
+			"Container_fetcher": "/container_fetcher"
 		}
 	},
     "redis": {
