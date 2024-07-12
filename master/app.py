@@ -65,7 +65,9 @@ api.add_resource(
 
 def start_image_deployment_handler(args) -> None:
     """Start ImageDeploymentHandler instance in a separate thread."""
-    workerSelector = WorkerSelector(db)
+    workers_list = WorkersList(db)
+    workers, status = workers_list.get()
+    workerSelector = WorkerSelector(db,workers)
     imageHandler = ImageDeploymentHandler(db, args, workerSelector.main())
     imageHandler.main()
 
