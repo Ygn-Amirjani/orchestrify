@@ -1,3 +1,4 @@
+from typing import Dict, Any
 import requests
 
 class ContainerInfoSender:
@@ -9,10 +10,11 @@ class ContainerInfoSender:
         """Perform a POST request."""
         return requests.post(url, json=data)
 
-    def send_info(self, container_name):
+    def send_info(self, container_name: str) -> Dict[str, Any]:
+        """Send container information to the master server."""
         result = self.post(f"{self.master_url}/container_fetcher", container_name)
         if result.status_code == 200:
-            print("Container ip Sender successfully")
+            print("Container IP sent successfully")
 
             data = {
                 "ip": result.json().get("ips"),
@@ -21,7 +23,8 @@ class ContainerInfoSender:
             return data
         else:
             print(result.text)
-            raise Exception(f"Send Container ip failed {result.status_code}")
+            raise Exception(f"Sending container IP failed with status code {result.status_code}")
 
-    def main(self):
+    def main(self) -> Dict[str, Any]:
+        """Main method to send container information."""
         return self.send_info(self.name)

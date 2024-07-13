@@ -1,6 +1,8 @@
-from flask import request, Response, jsonify
+from flask import request, Response
 from flask_restful import Resource
 from master.loadbalancer.ContainerInfoSender import ContainerInfoSender
+from typing import Dict, Any, Union
+
 import requests
 import random
 
@@ -8,13 +10,15 @@ class Proxy(Resource):
     def __init__(self, master_url: str) -> None:
         self.master_url = master_url
 
-    def find_container_url(self, container_info: dict):
+    def find_container_url(self, container_info: Dict[str, Any]) -> str:
+        """Find the container URL from the container information."""
         ip = random.choice(container_info.get("ip"))
         port = container_info.get("port")
 
         return f"http://{ip}:{port}"
 
-    def send_request(self, data: dict, url: str):
+    def send_request(self, data: Dict[str, Any], url: str) -> requests.Response:
+        """Send a request to the container."""
         method = data.get('method', 'GET').upper()
         headers = data.get('headers', {})
         payload = data.get('payload', {})
@@ -30,7 +34,8 @@ class Proxy(Resource):
         else:
             return Response('Unsupported HTTP method', status=400, content_type='text/plain')
 
-    def build_response(self, response):
+    def build_response(self, response: requests.Response) -> Response:
+        """Build a Flask response from the requests response."""
         excluded_headers = ['content-encoding', 'content-length', 'transfer-encoding', 'connection']
         headers = [(name, value) for name, value in response.raw.headers.items()
                    if name.lower() not in excluded_headers]
@@ -41,12 +46,13 @@ class Proxy(Resource):
             headers=headers
         )
 
-    def post(self):
+    def post(self) -> Union[Response, Dict[str, Any]]:
+        """Handle POST requests to the proxy."""
         try:
             data = request.json
             if not data or 'name' not in data:
                 return Response(
-                    'image name not provided', 
+                    'Image name not provided', 
                     status=400, 
                     content_type='text/plain'
                 )
@@ -61,12 +67,12 @@ class Proxy(Resource):
             response_time = response.elapsed.total_seconds() * 1000
 
             # Check if response time is less than or equal to 100 milliseconds
-            if response_time >= 100:
+            if response_time <= 100:
                 return self.build_response(response)
             else:
                 notify_response = requests.post(f'{self.master_url}/notification', json=container_info)
                 if notify_response.status_code == 200:
-                    return self.build_response(response) #Return the answer with the new container should be fixed
+                    return self.build_response(response) # Return the answer with the new container should be fixed
                 else:
                     return notify_response.json()
 
