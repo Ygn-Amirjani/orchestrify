@@ -28,25 +28,37 @@ api.add_resource(
 
 def start_info_sender(args) -> None:
     """Start InfoSender instance in a separate thread."""
-    infoSender = InfoSender(str(uuid.uuid4()), args)
-    infoSender.main()
+    try:
+        infoSender = InfoSender(str(uuid.uuid4()), args)
+        infoSender.main()
+
+    except Exception as e:
+        print(f"An error occurred in InfoSender: {e}")
 
 def main() -> None:
     """
     If --master-ip is provided in command-line arguments, start InfoSender in a thread.
     Otherwise, run the Flask app on specified host and port.
     """
-    args = get_arguments()
-    if args.master_ip:
-        # Create a thread for starting InfoSender
-        info_sender_thread = threading.Thread(target=start_info_sender, args=(args,))
-        info_sender_thread.start()  # Start InfoSender thread
+    try:
+        args = get_arguments()
+        
+        if args.master_ip:
+            # Create a thread for starting InfoSender
+            info_sender_thread = threading.Thread(target=start_info_sender, args=(args,))
+            info_sender_thread.start()  # Start InfoSender thread
 
-        # Wait for InfoSender thread to complete
-        info_sender_thread.join()
-    else:
-        # Run the Flask app in the main thread using specified host and port from configuration
-        app.run(host=CONFIG.get('host'), port=CONFIG.get('port'))
+            # Wait for InfoSender thread to complete
+            info_sender_thread.join()
+        else:
+            # Run the Flask app in the main thread
+            app.run(host=CONFIG.get('host'), port=CONFIG.get('port'))
+
+    except KeyboardInterrupt:
+        print("Shutting down gracefully...")
+
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
 
 if __name__ == "__main__":
     main()

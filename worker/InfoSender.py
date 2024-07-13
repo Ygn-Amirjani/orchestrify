@@ -11,11 +11,25 @@ class InfoSender:
 
     def post(self, url: str, data: dict) -> requests.Response:
         """Perform a POST request."""
-        return requests.post(url, json=data)
+        try:
+            response = requests.post(url, json=data)
+            response.raise_for_status()
+            return response
+
+        except requests.exceptions.RequestException as e:
+            print(f"Error during POST request to {url}: {e}")
+            raise
 
     def put(self, url: str, data: dict) -> requests.Response:
         """Perform a PUT request."""
-        return requests.put(url, json=data)
+        try:
+            response = requests.put(url, json=data)
+            response.raise_for_status()
+            return response
+
+        except requests.exceptions.RequestException as e:
+            print(f"Error during PUT request to {url}: {e}")
+            raise
 
     def get_worker_data(self) -> dict:
         """Prepare worker data for transmission."""
@@ -31,12 +45,15 @@ class InfoSender:
         data = self.get_worker_data()
         data["id"] = self.worker_id
 
-        result = self.post(f"{self.args.master_ip}/worker", data)
-        if result.status_code == 200:
+        try:
+            result = self.post(f"{self.args.master_ip}/worker", data)
             print("Worker registered successfully")
-        else:
-            print(result.text)
-            raise Exception(f"Worker registration failed {result.status_code}")
+
+        except requests.exceptions.RequestException as e:
+            print(f"Worker registration failed: {e}")
+            if "Connection refused" in str(e):
+                print("Master server not found. Please check the master IP address.")
+            raise
 
         time.sleep(5)
 
@@ -45,22 +62,29 @@ class InfoSender:
         while True:
             data = self.get_worker_data()
 
-            result = self.put(f"{self.args.master_ip}/worker/{self.worker_id}", data)
-            if result.status_code == 200:
+            try:
+                result = self.put(f"{self.args.master_ip}/worker/{self.worker_id}", data)
                 print("Worker updated successfully")
-            else:
-                print(result.text)
-                raise Exception(f"Worker update failed {result.status_code}")
+
+            except requests.exceptions.RequestException as e:
+                print(f"Worker update failed: {e}")
+                if "Name or service not known" in str(e):
+                    print("Master server not found. Please check the master IP address.")
+                raise
 
             time.sleep(5)
 
     def main(self) -> None:
         """Main execution function."""
-        self.register()
+        try:
+            self.register()
 
-        # Create a thread for the update_info loop
-        update_thread = threading.Thread(target=self.update_info)
-        update_thread.start() # Start the update thread
+            # Create a thread for the update_info loop
+            update_thread = threading.Thread(target=self.update_info)
+            update_thread.start() # Start the update thread
 
-        # Wait for the update thread to complete
-        update_thread.join()
+            # Wait for the update thread to complete
+            update_thread.join()
+     
+        except Exception as e:
+            print(f"An error occurred in main: {e}")

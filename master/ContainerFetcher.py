@@ -13,15 +13,40 @@ class ContainerFetcher(Resource):
 
     def post(self) -> Tuple[Dict[str, Union[str, List[str]]], int]:
         """Handle POST requests to fetch container information."""
-        data = request.get_json()
+        try:
+            data = request.get_json()
 
-        container_keys, status = self.containers_list.get()
-        for container_key in container_keys:
-            if container_key.split(":")[1] != data:
-                continue
+            if not data :
+                return {"status": "error",
+                        "message": "Container name is required in data."
+                }, 400
 
-            container_info = self.repository.read(container_key)
-            self.container_port = container_info.get('port').split(': ')[1].strip('}')
-            self.ips.append(container_info.get("worker_ip"))
+            container_keys, status = self.containers_list.get()
+            for container_key in container_keys:
+                if container_key.split(":")[1] != data:
+                    continue
 
-        return {"status": "ok", "port": self.container_port, "ips": self.ips}, 200
+                container_info = self.repository.read(container_key)
+                self.container_port = container_info.get('port').split(': ')[1].strip('}')
+                self.ips.append(container_info.get("worker_ip"))
+
+            found_container = False
+            if self.ips:
+                found_container = True
+
+            if not found_container:
+                return {
+                    "status": "error",
+                    "message": f"Container with name '{data}' not found."
+                }, 404
+
+            return {"status": "ok", "port": self.container_port, "ips": self.ips}, 200
+
+        except KeyError as ke:
+            return {"status": "error", "message": f"KeyError: {str(ke)}"}, 400
+
+        except ValueError as ve:
+            return {"status": "error", "message": f"ValueError: {str(ve)}"}, 400
+
+        except Exception as e:
+            return {"status": "error", "message": f"Internal Server Error: {str(e)}"}, 500

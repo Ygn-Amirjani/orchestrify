@@ -71,28 +71,37 @@ api.add_resource(
 
 def start_image_deployment_handler(args) -> None:
     """Start ImageDeploymentHandler instance in a separate thread."""
-    workers_list = WorkersList(db)
-    workers, status = workers_list.get()
-    workerSelector = WorkerSelector(db,workers)
-    imageHandler = ImageDeploymentHandler(db, args, workerSelector.main())
-    imageHandler.main()
+    try:
+        workers_list = WorkersList(db)
+        workers, status = workers_list.get()
+        workerSelector = WorkerSelector(db,workers)
+        imageHandler = ImageDeploymentHandler(db, args, workerSelector.main())
+        imageHandler.main()
+
+    except Exception as e:
+        print(f"Exception occurred during image deployment: {str(e)}")
 
 def main() -> None:
     """
     If --image-name is provided in command-line arguments,start function in a thread.
     Otherwise, run the Flask app on specified host and port.
     """
-    args = get_arguments()
-    if args.image_name:
-        # Create a thread for starting InfoSender
-        image_sender_thread = threading.Thread(target=start_image_deployment_handler, args=(args,))
-        image_sender_thread.start() # Start InfoSender thread
+    try:
+        args = get_arguments()
 
-        # Wait for InfoSender thread to complete
-        image_sender_thread.join()
-    else:
-        # Run the Flask app in the main thread using specified host and port from configuration
-        app.run(host=CONFIG.get('host'), port=CONFIG.get('port'))
+        if args.image_name:
+            # Create a thread for starting InfoSender
+            image_sender_thread = threading.Thread(target=start_image_deployment_handler, args=(args,))
+            image_sender_thread.start() # Start InfoSender thread
+
+            # Wait for InfoSender thread to complete
+            image_sender_thread.join()
+        else:
+            # Run the Flask app in the main thread using specified host and port from configuration
+            app.run(host=CONFIG.get('host'), port=CONFIG.get('port'))
+
+    except Exception as e:
+        print(f"Unhandled exception in main thread: {str(e)}")
 
 if __name__ == "__main__":
     main()

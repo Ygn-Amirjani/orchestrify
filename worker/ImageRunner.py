@@ -52,8 +52,39 @@ class ImageRunner(Resource):
                 "container_name": container.name,
                 "container_status": container.status
             }, 200
+
+        except docker.errors.ImageNotFound as e:
+            return {
+                "status": "error",
+                "message": f"Image not found: {image_name}. Error: {e}",
+            }, 404
+
         except docker.errors.APIError as e:
             return {
                 "status": "error",
-                "message": f"Failed to run image: {image_name}. Error: {e}",
+                "message": f"Failed to run image: {image_name}. API Error: {e}",
+            }, 500
+
+        except docker.errors.ContainerError as e:
+            return {
+                "status": "error",
+                "message": f"Container error: {e}",
+            }, 500
+
+        except docker.errors.DockerException as e:
+            return {
+                "status": "error",
+                "message": f"Docker exception: {e}",
+            }, 500
+
+        except ValueError as e:
+            return {
+                "status": "error",
+                "message": f"Invalid input: {e}",
+            }, 400
+
+        except Exception as e:
+            return {
+                "status": "error",
+                "message": f"An unexpected error occurred: {e}",
             }, 500

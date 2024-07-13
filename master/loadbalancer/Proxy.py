@@ -76,5 +76,10 @@ class Proxy(Resource):
                 else:
                     return notify_response.json()
 
+        except requests.exceptions.RequestException as e:
+            print(f"Request error occurred: {e}")
+            return Response('Request error occurred', status=500, content_type='text/plain')
+
         except Exception as e:
-            return Response(str(e), status=500, content_type='text/plain')
+            print(f"Unexpected error occurred: {e}")
+            return Response('Unexpected error occurred', status=500, content_type='text/plain')

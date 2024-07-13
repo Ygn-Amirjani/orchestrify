@@ -8,9 +8,13 @@ class ContainersList(Resource):
 
     def get(self) -> Tuple[List[str], int]:
         """List of all Containers."""
-        all_keys = self.repository.read_all()
+        try:
+            all_keys = self.repository.read_all()
 
-        container_keys = [key for key in all_keys
-            if key.startswith("container:")]
+            container_keys = [key for key in all_keys
+                if key.startswith("container:")]
 
-        return container_keys, 200
+            return container_keys, 200
+
+        except Exception as e:
+            return {"error": f"Internal Server Error: {str(e)}"}, 500
