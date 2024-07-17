@@ -1,5 +1,6 @@
 import uuid
 import threading
+import logging
 from flask import Flask
 from flask_restful import Api
 
@@ -8,6 +9,12 @@ from worker.ImagePuller import ImagePuller
 from worker.InfoSender import InfoSender
 from worker.ImageRunner import ImageRunner
 from worker.cli import get_arguments
+from worker.conf.logging_config import setup_logging
+
+# Set up logging for the main module
+log_file = "logs/worker_app.log"
+setup_logging(log_file)
+logger = logging.getLogger(__name__)
 
 # Initialize Flask
 app = Flask(__name__)
@@ -33,7 +40,7 @@ def start_info_sender(args) -> None:
         infoSender.main()
 
     except Exception as e:
-        print(f"An error occurred in InfoSender: {e}")
+        logger.error(f"An error occurred in InfoSender: {e}")
 
 def main() -> None:
     """
@@ -55,10 +62,10 @@ def main() -> None:
             app.run(host=CONFIG.get('host'), port=CONFIG.get('port'))
 
     except KeyboardInterrupt:
-        print("Shutting down gracefully...")
+        logger.info("Shutting down gracefully...")
 
     except Exception as e:
-        print(f"An unexpected error occurred: {e}")
+        logger.error(f"An unexpected error occurred: {e}")
 
-if __name__ == "__main__":
+if __name__ == "__main__":  
     main()

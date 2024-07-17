@@ -1,4 +1,5 @@
 import threading
+import logging
 from flask import Flask
 from flask_restful import Api
 
@@ -14,8 +15,14 @@ from master.ContainerInfo import ContainerInfo
 from master.NotificationHandler import NotificationHandler
 from master.ContainerFetcher import ContainerFetcher
 from master.cli import get_arguments
+from master.conf.logging_config import setup_logging
 
 from master.database.RedisDB import Redis
+
+# Set up logging for the main module
+log_file = "logs/master_app.log"
+setup_logging(log_file)
+logger = logging.getLogger(__name__)
 
 # Initialize Flask
 app = Flask(__name__)
@@ -79,7 +86,7 @@ def start_image_deployment_handler(args) -> None:
         imageHandler.main()
 
     except Exception as e:
-        print(f"Exception occurred during image deployment: {str(e)}")
+        logger.error(f"Exception occurred during image deployment: {str(e)}")
 
 def main() -> None:
     """
@@ -90,18 +97,18 @@ def main() -> None:
         args = get_arguments()
 
         if args.image_name:
-            # Create a thread for starting InfoSender
+            # Create a thread for starting imageDeploymentHandler
             image_sender_thread = threading.Thread(target=start_image_deployment_handler, args=(args,))
-            image_sender_thread.start() # Start InfoSender thread
+            image_sender_thread.start() # Start imageDeploymentHandler thread
 
-            # Wait for InfoSender thread to complete
+            # Wait for imageDeploymentHandler thread to complete
             image_sender_thread.join()
         else:
             # Run the Flask app in the main thread using specified host and port from configuration
             app.run(host=CONFIG.get('host'), port=CONFIG.get('port'))
 
     except Exception as e:
-        print(f"Unhandled exception in main thread: {str(e)}")
+        logger.error(f"Unhandled exception in main thread: {str(e)}")
 
 if __name__ == "__main__":
     main()

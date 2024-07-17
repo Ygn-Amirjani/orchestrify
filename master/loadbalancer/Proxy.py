@@ -1,21 +1,28 @@
 from flask import request, Response
 from flask_restful import Resource
-from master.loadbalancer.ContainerInfoSender import ContainerInfoSender
 from typing import Dict, Any, Union
+from master.loadbalancer.ContainerInfoSender import ContainerInfoSender
+from master.conf.logging_config import setup_logging
 
 import requests
 import random
+import logging
 
 class Proxy(Resource):
     def __init__(self, master_url: str) -> None:
         self.master_url = master_url
+        log_file = "logs/loadbalancer.log"
+        setup_logging(log_file)
+        self.logger = logging.getLogger(self.__class__.__name__)
 
     def find_container_url(self, container_info: Dict[str, Any]) -> str:
         """Find the container URL from the container information."""
         ip = random.choice(container_info.get("ip"))
         port = container_info.get("port")
+        url = f"http://{ip}:{port}"
+        self.logger.debug(f"Container URL found: {url}")
 
-        return f"http://{ip}:{port}"
+        return url
 
     def send_request(self, data: Dict[str, Any], url: str) -> requests.Response:
         """Send a request to the container."""
@@ -23,16 +30,26 @@ class Proxy(Resource):
         headers = data.get('headers', {})
         payload = data.get('payload', {})
 
-        if method == 'GET':
-            return requests.get(url, headers=headers, params=payload)
-        elif method == 'POST':
-            return requests.post(url, headers=headers, json=payload)
-        elif method == 'PUT':
-            return requests.put(url, headers=headers, json=payload)
-        elif method == 'DELETE':
-            return requests.delete(url, headers=headers, json=payload)
-        else:
-            return Response('Unsupported HTTP method', status=400, content_type='text/plain')
+        self.logger.debug(f"Sending {method} request to {url} with headers {headers} and payload {payload}")
+        try:
+            if method == 'GET':
+                response = requests.get(url, headers=headers, params=payload)
+            elif method == 'POST':
+                response = requests.post(url, headers=headers, json=payload)
+            elif method == 'PUT':
+                response = requests.put(url, headers=headers, json=payload)
+            elif method == 'DELETE':
+                response = requests.delete(url, headers=headers, json=payload)
+            else:
+                self.logger.error(f"Unsupported HTTP method: {method}")
+                return Response('Unsupported HTTP method', status=400, content_type='text/plain')
+
+            self.logger.debug(f"Received response with status {response.status_code}")
+            return response
+
+        except requests.exceptions.RequestException as e:
+            self.logger.error(f"Request error occurred: {e}")
+            raise
 
     def build_response(self, response: requests.Response) -> Response:
         """Build a Flask response from the requests response."""
@@ -40,23 +57,27 @@ class Proxy(Resource):
         headers = [(name, value) for name, value in response.raw.headers.items()
                    if name.lower() not in excluded_headers]
 
-        return Response(
+        response =  Response(
             response.content, 
             status=response.status_code, 
             headers=headers
         )
+        self.logger.debug(f"Built Flask response with status {response.status_code}")
+        return response
 
     def post(self) -> Union[Response, Dict[str, Any]]:
         """Handle POST requests to the proxy."""
         try:
             data = request.json
             if not data or 'name' not in data:
+                self.logger.error("Image name not provided in request data")
                 return Response(
                     'Image name not provided', 
                     status=400, 
                     content_type='text/plain'
                 )
 
+            self.logger.info(f"Received request to proxy for image: {data['name']}")
             infoSender = ContainerInfoSender(data['name'], self.master_url)
             container_info = infoSender.main()
 
@@ -65,21 +86,26 @@ class Proxy(Resource):
 
             # Convert to milliseconds
             response_time = response.elapsed.total_seconds() * 1000
+            self.logger.info(f"Received request to proxy for image: {data['name']}")
 
             # Check if response time is less than or equal to 100 milliseconds
-            if response_time <= 100:
+            if response_time >= 100:
+                self.logger.info("Response time within acceptable range")
                 return self.build_response(response)
             else:
+                self.logger.warning("Response time exceeded 100 ms, notifying master")
                 notify_response = requests.post(f'{self.master_url}/notification', json=container_info)
                 if notify_response.status_code == 200:
+                    self.logger.info("Master notified successfully")
                     return self.build_response(response) # Return the answer with the new container should be fixed
                 else:
+                    self.logger.error(f"Failed to notify master: {notify_response.status_code}")
                     return notify_response.json()
 
         except requests.exceptions.RequestException as e:
-            print(f"Request error occurred: {e}")
+            self.logger.error(f"Request error occurred: {e}")
             return Response('Request error occurred', status=500, content_type='text/plain')
 
         except Exception as e:
-            print(f"Unexpected error occurred: {e}")
+            self.logger.error(f"Unexpected error occurred: {e}")
             return Response('Unexpected error occurred', status=500, content_type='text/plain')
