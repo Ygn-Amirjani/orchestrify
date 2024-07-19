@@ -6,6 +6,7 @@ from flask_restful import Api
 from master.conf.config import CONFIG
 from master.WorkerRegistrer import WorkerRegistrer
 from master.WorkerUpdater import WorkerUpdater
+from master.WorkerDelete import WorkerDelete
 from master.WorkersList import WorkersList
 from master.WorkerInfo import WorkerInfo
 from master.ImageDeploymentHandler import ImageDeploymentHandler
@@ -16,7 +17,6 @@ from master.NotificationHandler import NotificationHandler
 from master.ContainerFetcher import ContainerFetcher
 from master.cli import get_arguments
 from master.conf.logging_config import setup_logging
-
 from master.database.RedisDB import Redis
 
 # Set up logging for the main module
@@ -43,6 +43,11 @@ api.add_resource(
 api.add_resource(
     WorkerUpdater,
     CONFIG.get('routes', {}).get('master', {}).get('worker_updater'),
+    resource_class_kwargs={'repository': db}
+)
+api.add_resource(
+    WorkerDelete,
+    CONFIG.get('routes', {}).get('master', {}).get('worker_delete'),
     resource_class_kwargs={'repository': db}
 )
 api.add_resource(
