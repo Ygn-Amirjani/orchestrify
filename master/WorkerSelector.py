@@ -32,7 +32,7 @@ class WorkerSelector:
                 status = worker.get('status', 'unknown')
 
                 # Only consider workers that are in 'running' status
-                if status != "RUNNING":
+                if status != "AVAILABLE":
                     self.logger.info(f"Skipping worker {worker_key} with status {status}")
                     continue
 

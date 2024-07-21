@@ -61,7 +61,7 @@ class InfoSender:
             "ip": socket.gethostbyname(socket.gethostname()),
             "ram-usage": psutil.virtual_memory().percent,
             "cpu-usage": psutil.cpu_percent(interval=1),
-            "status": "RUNNING",
+            "status": "ACTIVE",
         }
         self.logger.debug(f"Worker data: {data}")
         return data
