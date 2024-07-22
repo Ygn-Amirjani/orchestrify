@@ -11,6 +11,7 @@ from worker.conf.config import CONFIG
 from worker.ImagePuller import ImagePuller
 from worker.InfoSender import InfoSender
 from worker.ImageRunner import ImageRunner
+from worker.StatusSender import StatusSender
 from worker.cli import get_arguments
 from worker.conf.logging_config import setup_logging
 
@@ -34,6 +35,10 @@ api.add_resource(
 api.add_resource(
     ImageRunner,
     CONFIG.get("routes", {}).get("worker", {}).get("run_image")
+)
+api.add_resource(
+    StatusSender,
+    CONFIG.get("routes", {}).get("worker", {}).get("container_status")
 )
 
 def start_info_sender(args, stop_event: threading.Event) -> InfoSender:

@@ -1,7 +1,10 @@
 import threading
 import logging
+import signal
+import sys
 from flask import Flask
 from flask_restful import Api
+from typing import Any
 
 from master.conf.config import CONFIG
 from master.WorkerRegistrer import WorkerRegistrer
@@ -15,6 +18,7 @@ from master.ContainersList import ContainersList
 from master.ContainerInfo import ContainerInfo
 from master.NotificationHandler import NotificationHandler
 from master.ContainerFetcher import ContainerFetcher
+from master.ContainerStatusReceiver import ContainerStatusReceiver
 from master.cli import get_arguments
 from master.conf.logging_config import setup_logging
 from master.database.RedisDB import Redis
@@ -93,13 +97,34 @@ def start_image_deployment_handler(args) -> None:
     except Exception as e:
         logger.error(f"Exception occurred during image deployment: {str(e)}")
 
+def start_container_status_receiver(stop_event: threading.Event) -> None:
+    """Start ContainerStatusReceiver in a separate thread."""
+    try:
+        status_receiver = ContainerStatusReceiver(db, stop_event)
+        status_receiver.main()
+    except Exception as e:
+        logger.error(f"Exception occurred in ContainerStatusReceiver: {str(e)}")
+
+def signal_handler(signal: int, frame: Any) -> None:
+    """Handle signal interruption."""
+    logger.info("Shutting down gracefully...")
+    if 'start_container_status_receiver' in globals():
+        start_container_status_receiver.stop()  # Stop the start_container_status_receiver thread
+    sys.exit(0)
+
+
 def main() -> None:
     """
     If --image-name is provided in command-line arguments,start function in a thread.
     Otherwise, run the Flask app on specified host and port.
     """
+    global start_container_status_receiver
     try:
         args = get_arguments()
+
+        # Start ContainerStatusReceiver thread
+        stop_event = threading.Event()
+        start_container_status_receiver = start_container_status_receiver(stop_event)
 
         if args.image_name:
             # Create a thread for starting imageDeploymentHandler
@@ -112,8 +137,15 @@ def main() -> None:
             # Run the Flask app in the main thread using specified host and port from configuration
             app.run(host=CONFIG.get('host'), port=CONFIG.get('port'))
 
+    except KeyboardInterrupt:
+        logger.info("Shutting down gracefully...")
+
     except Exception as e:
         logger.error(f"Unhandled exception in main thread: {str(e)}")
 
 if __name__ == "__main__":
+    # Register signal handler
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+
     main()

@@ -4,7 +4,8 @@
 	"routes":{
 		"worker":{
 			"pull_image": "/pull_image",
-			"run_image": "/run_image"
+			"run_image": "/run_image",
+			"container_status": "/status/<string:container_id>"
 		}
 	}
 }
