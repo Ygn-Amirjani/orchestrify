@@ -12,17 +12,17 @@ LOGGING_CONFIG = {
         },
     },
     'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
+        'file': {
+            'class': 'logging.FileHandler',
             'formatter': 'standard',
             'level': 'DEBUG',
         },
     },
     'loggers': {
         '': {
-            'handlers': ['console'],
+            'handlers': ['file'],
             'level': 'DEBUG',
-            'propagate': True
+            'propagate': False  # Do not propagate to parent loggers (e.g., no console output)
         },
     }
 }
@@ -41,7 +41,6 @@ def setup_logging(log_file):
 
     config = LOGGING_CONFIG.copy()
     config['handlers']['file'] = file_handler
-    config['loggers']['']['handlers'].append('file')
 
     try:
         logging.config.dictConfig(config)

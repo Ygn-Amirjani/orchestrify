@@ -85,6 +85,62 @@ api.add_resource(
     resource_class_kwargs={'repository': db}
 )
 
+def fetch_and_print_workers() -> None:
+    """Fetch and print the list of workers."""
+    try:
+        workers_list = WorkersList(db)
+        workers, status = workers_list.get()
+        if status == 200:
+            print("List of workers:\n")
+            for worker in workers:
+                print(worker)
+        else:
+            print(f"Failed to retrieve workers. Status code: {status}")
+    except Exception as e:
+       logger.error(f"Failed to retrieve worker list: {e}")
+
+def fetch_worker(worker_id: str) -> None:
+    """Fetch and print the information of worker."""
+    try:
+        workers_info = WorkerInfo(db)
+        worker_info, status = workers_info.get(worker_id)
+
+        if status == 200:
+            print("Worker information:\n")
+            print(worker_info)
+        else:
+            print(f"Failed to retrieve worker. Status code: {status}, Error: {worker_info['error']}")
+    except Exception as e:
+       logger.error(f"Failed to retrieve worker information: {e}")
+
+def fetch_and_print_containers() -> None:
+    """Fetch and print the list of workers."""
+    try:
+        containers_list = ContainersList(db)
+        containers, status = containers_list.get()
+        if status == 200:
+            print("List of containers:\n")
+            for container in containers:
+                print(container)
+        else:
+            print(f"Failed to retrieve containers. Status code: {status}")
+    except Exception as e:
+       logger.error(f"Failed to retrieve containers list: {e}")
+
+def fetch_container(container_id: str) -> None:
+    """Fetch and print the information of container."""
+    try:
+        containers_info = ContainerInfo(db)
+        container_info, status = containers_info.get(container_id)
+
+        if status == 200:
+            print("container information:\n")
+            print(container_info)
+        else:
+            print(f"Failed to retrieve container. Status code: {status}, Error: {container_info['error']}")
+    except Exception as e:
+        logger.error(f"Failed to retrieve container information: {e}")
+
 def start_image_deployment_handler(args) -> None:
     """Start ImageDeploymentHandler instance in a separate thread."""
     try:
@@ -122,11 +178,19 @@ def main() -> None:
     try:
         args = get_arguments()
 
-        # Start ContainerStatusReceiver thread
-        stop_event = threading.Event()
-        start_container_status_receiver = start_container_status_receiver(stop_event)
-
-        if args.image_name:
+        if args.nodes:
+            # Handle the --nodes argument by fetching and printing worker list
+            fetch_and_print_workers()
+        elif args.node:
+            # Handle the --node ID argument by fetching and printing worker information
+            fetch_worker(args.node)
+        elif args.procs:
+            # Handle the --procs argument by fetching and printing container list
+            fetch_and_print_containers()
+        elif args.proc:
+            # Handle the --proc ID argument by fetching and printing container information
+            fetch_container(args.proc)
+        elif args.image_name:
             # Create a thread for starting imageDeploymentHandler
             image_sender_thread = threading.Thread(target=start_image_deployment_handler, args=(args,))
             image_sender_thread.start() # Start imageDeploymentHandler thread
@@ -134,6 +198,11 @@ def main() -> None:
             # Wait for imageDeploymentHandler thread to complete
             image_sender_thread.join()
         else:
+
+            # Start ContainerStatusReceiver thread
+            stop_event = threading.Event()
+            start_container_status_receiver = start_container_status_receiver(stop_event)
+
             # Run the Flask app in the main thread using specified host and port from configuration
             app.run(host=CONFIG.get('host'), port=CONFIG.get('port'))
 
