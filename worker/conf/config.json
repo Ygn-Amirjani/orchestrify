@@ -6,7 +6,8 @@
 			"pull_image": "/pull_image",
 			"run_image": "/run_image",
 			"container_status": "/status/<string:container_id>",
-			"delete_logfile": "/del/<string:file>"
+			"delete_logfile": "/del/<string:file>",
+			"delete_container": "/del/<string:container_id>"
 		}
 	}
 }

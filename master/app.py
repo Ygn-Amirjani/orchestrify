@@ -16,6 +16,7 @@ from master.ImageDeploymentHandler import ImageDeploymentHandler
 from master.WorkerSelector import WorkerSelector
 from master.ContainersList import ContainersList
 from master.ContainerInfo import ContainerInfo
+from master.ContainerDeleter import ContainerDeleter
 from master.NotificationHandler import NotificationHandler
 from master.ContainerFetcher import ContainerFetcher
 from master.ContainerStatusReceiver import ContainerStatusReceiver
@@ -151,6 +152,16 @@ def fetch_container(container_id: str) -> None:
     except Exception as e:
         logger.error(f"Failed to retrieve container information: {e}")
 
+def delete_container(container_id: str) -> None:
+    container_delete = ContainerDeleter(db, container_id)
+    container_info, status = container_delete.main()
+
+    if status == 200:
+        print('container is deleted')
+        print(container_info)
+    else:
+        print('failed to delete worker')
+
 def start_image_deployment_handler(args) -> None:
     """Start ImageDeploymentHandler instance in a separate thread."""
     try:
@@ -203,6 +214,8 @@ def main() -> None:
         elif args.proc:
             # Handle the --proc ID argument by fetching and printing container information
             fetch_container(args.proc)
+        elif args.proc_del:
+            delete_container(args.proc_del)
         elif args.image_name:
             # Create a thread for starting imageDeploymentHandler
             image_sender_thread = threading.Thread(target=start_image_deployment_handler, args=(args,))
