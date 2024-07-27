@@ -12,6 +12,7 @@ from worker.ImagePuller import ImagePuller
 from worker.InfoSender import InfoSender
 from worker.ImageRunner import ImageRunner
 from worker.StatusSender import StatusSender
+from worker.LoggerFileDeleter import LoggerFileDeleter
 from worker.cli import get_arguments
 from worker.conf.logging_config import setup_logging
 
@@ -39,6 +40,10 @@ api.add_resource(
 api.add_resource(
     StatusSender,
     CONFIG.get("routes", {}).get("worker", {}).get("container_status")
+)
+api.add_resource(
+    LoggerFileDeleter,
+    CONFIG.get("routes", {}).get("worker", {}).get("delete_logfile")
 )
 
 def start_info_sender(args, stop_event: threading.Event) -> InfoSender:

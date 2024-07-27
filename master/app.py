@@ -113,6 +113,16 @@ def fetch_worker(worker_id: str) -> None:
     except Exception as e:
        logger.error(f"Failed to retrieve worker information: {e}")
 
+def delete_worker(worker_id: str) -> None:
+    worker_delete = WorkerDelete(db)
+    worker_info, status = worker_delete.delete(worker_id)
+
+    if status == 200:
+        print('worker is deleted')
+        print(worker_info)
+    else:
+        print('failed to delete worker')
+
 def fetch_and_print_containers() -> None:
     """Fetch and print the list of workers."""
     try:
@@ -164,6 +174,7 @@ def start_container_status_receiver(stop_event: threading.Event) -> None:
 def signal_handler(signal: int, frame: Any) -> None:
     """Handle signal interruption."""
     logger.info("Shutting down gracefully...")
+    print("Shutting down gracefully...")
     if 'start_container_status_receiver' in globals():
         start_container_status_receiver.stop()  # Stop the start_container_status_receiver thread
     sys.exit(0)
@@ -184,6 +195,8 @@ def main() -> None:
         elif args.node:
             # Handle the --node ID argument by fetching and printing worker information
             fetch_worker(args.node)
+        elif args.node_del:
+            delete_worker(args.node_del) 
         elif args.procs:
             # Handle the --procs argument by fetching and printing container list
             fetch_and_print_containers()

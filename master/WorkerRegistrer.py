@@ -5,7 +5,7 @@ from master.conf.logging_config import setup_logging
 from master.WorkersList import WorkersList
 
 import logging
-import os
+import requests
 
 class WorkerRegistrer(Resource):
     def __init__(self, repository: Repository) -> None:
@@ -31,11 +31,19 @@ class WorkerRegistrer(Resource):
                 if worker_key.split(":")[2] == args["ip"]:
                     worker_info = self.repository.read(worker_key)
 
-                    # Remove the log file
-                    new_log_file = f"logs/info_sender_{args["id"]}.log"
-                    if os.path.exists(new_log_file):
-                        os.remove(new_log_file)
-                        self.logger.info(f"Log file {new_log_file} deleted")
+                    try:
+                        # Remove the info_sender log file
+                        logger_file = f"info_sender_{args['id']}.log"
+                        key = f"http://{args['ip']}:18081/del/{logger_file}"
+                        response = requests.get(key)
+                        if response.status_code == 200:
+                            self.logger.info(f"Successfully deleted log file for worker {args['id']} on IP {args['ip']}")
+                        else:
+                            self.logger.error(f"Failed to delete log file for worker {args['id']} on IP {args['ip']}: {response.content}")
+
+                    except requests.RequestException as re:
+                        self.logger.error(f"RequestException while trying to delete log file for worker {args['id']} on IP {args['ip']}: {str(re)}")
+                        return {"status": "error", "message": f"Failed to delete log file for worker {args['id']} on IP {args['ip']} due to a network error"}, 500
 
                     self.logger.error("This worker has already been registered and is in the database list")
                     return {"status": "error", "message": f"This IP is already used {worker_info}"}, 400

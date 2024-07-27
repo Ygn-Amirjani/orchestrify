@@ -4,8 +4,10 @@ from master.database.Repository import Repository
 from master.WorkersList import WorkersList
 from master.conf.logging_config import setup_logging
 
-import logging
 import os
+import time
+import logging
+import requests
 
 class WorkerDelete(Resource):
     def __init__(self, repository: Repository) -> None:
@@ -26,9 +28,24 @@ class WorkerDelete(Resource):
                     if worker_info:
                         self.logger.info(f"Successfully retrieved info for worker {worker_id}")
 
+                        try:
+                            # Remove the info_sender log file
+                            logger_file = f"info_sender_{worker_id}.log"
+                            key = f"http://{worker_info.get('ip')}:18081/del/{logger_file}"
+                            response = requests.get(key)
+                            if response.status_code == 200:
+                                self.logger.info(f"Successfully deleted log file for worker {worker_id} on IP {worker_info.get('ip')}")
+                            else:
+                                self.logger.error(f"Failed to delete log file for worker {worker_id} on IP {worker_info.get('ip')}: {response.content}")
+
+                        except requests.RequestException as re:
+                            self.logger.error(f"RequestException while trying to delete log file for worker {worker_id} on IP {worker_info.get('ip')}: {str(re)}")
+                            return {"status": "error", "message": f"Failed to delete log file for worker {worker_id} on IP {worker_info.get('ip')} due to a network error"}, 500
+
                         # Remove the log file
                         log_file = f"logs/worker_register_{worker_id}.log"
                         if os.path.exists(log_file):
+                            time.sleep(5)
                             os.remove(log_file)
                             self.logger.info(f"Log file {log_file} deleted")
 

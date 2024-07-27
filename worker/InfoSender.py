@@ -106,14 +106,6 @@ class InfoSender:
             result = self.delete(f"{self.args.master_ip}/worker/{self.worker_id}")
             self.logger.info(f"Worker {self.worker_id} has successfully deleted")
 
-            # Remove the log file
-            if os.path.exists(self.log_file):
-                os.remove(self.log_file)
-                log_file = f'logs/worker_app.log'
-                setup_logging(log_file)
-                logger = logging.getLogger(self.__class__.__name__)
-                logger.info(f"Log file {self.log_file} deleted")
-
         except requests.exceptions.RequestException as e:
             self.logger.error(f"Worker deletion failed: {e} and result: {result.text}")
             if "Name or service not known" in str(e):

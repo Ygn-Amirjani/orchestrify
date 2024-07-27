@@ -5,6 +5,7 @@ def get_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument('--nodes', action='store_true', help="Flag to indicate nodes are being used")
     parser.add_argument('--node', type=str, help="information of the worker")
+    parser.add_argument('--node-del', type=str, help="delete worker")
     parser.add_argument('--procs', action='store_true', help="Flag to indicate procs are being used")
     parser.add_argument('--proc', type=str, help="information of the container")
     parser.add_argument("--image-name", help="Name of the image")
