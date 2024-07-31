@@ -5,13 +5,14 @@
 		"master":{
 			"worker_register": "/worker",
 			"worker_updater": "/worker/<string:worker_id>",
-			"worker_delete": "/worker/<string:worker_id>",
+			"worker_delete": "/del/worker/<string:worker_id>",
 			"workers_list":"/workers",
 			"worker_info":"/worker/<string:worker_id>",
 			"containers_list": "/containers",
 			"container_info": "/container/<string:container_id>",
 			"notification": "/notification",
-			"Container_fetcher": "/container_fetcher"
+			"Container_fetcher": "/container_fetcher",
+			"container_reallocator": "/reallocator"
 		}
 	},
     "redis": {

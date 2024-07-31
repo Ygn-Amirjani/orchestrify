@@ -99,7 +99,7 @@ class ImageDeploymentHandler:
     def main(self) -> None:
         """Main method to manage the deployment process."""
         try:
-            self.send_image(self.worker_url)
+            # self.send_image(self.worker_url)
             container_info = self.run_image(self.worker_url)
             self.save_container_info(container_info)
 

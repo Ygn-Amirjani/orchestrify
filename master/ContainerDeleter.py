@@ -34,12 +34,12 @@ class ContainerDeleter:
                 return {'error': 'Failed to get container keys'}, 500
             
             for container_key in container_keys:
-                if container_id == container_key.split(':')[2]:
-                    container_info = self.repository.read(container_key)
-                    if container_info is None:
+                container_info = self.repository.read(container_key)
+                if container_info is None:
                         self.logger.error(f"Container info not found for key: {container_key}")
                         return {'error': 'Container info not found'}, 404
 
+                if container_id == container_key.split(':')[2] or container_id == container_info.get('id'):
                     self.repository.delete(container_key)
                     self.logger.info(f"Deleted container key from repository: {container_key}")
 
@@ -65,4 +65,4 @@ class ContainerDeleter:
             return {'error': 'An unexpected error occurred'}, 500
 
     def main(self):
-        self.delete_container(self.container_id)
+        return self.delete_container(self.container_id)

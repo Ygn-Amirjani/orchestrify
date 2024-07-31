@@ -103,7 +103,7 @@ class InfoSender:
     def delete_info(self) -> None:
         """Delete worker information when stopping."""
         try:
-            result = self.delete(f"{self.args.master_ip}/worker/{self.worker_id}")
+            result = self.delete(f"{self.args.master_ip}/del/worker/{self.worker_id}")
             self.logger.info(f"Worker {self.worker_id} has successfully deleted")
 
         except requests.exceptions.RequestException as e:

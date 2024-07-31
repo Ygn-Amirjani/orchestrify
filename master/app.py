@@ -20,6 +20,7 @@ from master.ContainerDeleter import ContainerDeleter
 from master.NotificationHandler import NotificationHandler
 from master.ContainerFetcher import ContainerFetcher
 from master.ContainerStatusReceiver import ContainerStatusReceiver
+from master.ContainerReallocator import ContainerReallocator
 from master.cli import get_arguments
 from master.conf.logging_config import setup_logging
 from master.database.RedisDB import Redis
@@ -53,7 +54,7 @@ api.add_resource(
 api.add_resource(
     WorkerDelete,
     CONFIG.get('routes', {}).get('master', {}).get('worker_delete'),
-    resource_class_kwargs={'repository': db}
+    resource_class_kwargs={'repository': db, 'master_ip': CONFIG.get('host')}
 )
 api.add_resource(
     WorkersList,
@@ -83,6 +84,11 @@ api.add_resource(
 api.add_resource(
     ContainerFetcher,
     CONFIG.get('routes', {}).get('master', {}).get('Container_fetcher'),
+    resource_class_kwargs={'repository': db}
+)
+api.add_resource(
+    ContainerReallocator,
+    CONFIG.get('routes', {}).get('master', {}).get('container_reallocator'),
     resource_class_kwargs={'repository': db}
 )
 
@@ -115,7 +121,7 @@ def fetch_worker(worker_id: str) -> None:
        logger.error(f"Failed to retrieve worker information: {e}")
 
 def delete_worker(worker_id: str) -> None:
-    worker_delete = WorkerDelete(db)
+    worker_delete = WorkerDelete(db, CONFIG.get('host'))
     worker_info, status = worker_delete.delete(worker_id)
 
     if status == 200:
@@ -160,7 +166,7 @@ def delete_container(container_id: str) -> None:
         print('container is deleted')
         print(container_info)
     else:
-        print('failed to delete worker')
+        print('failed to delete container')
 
 def start_image_deployment_handler(args) -> None:
     """Start ImageDeploymentHandler instance in a separate thread."""
