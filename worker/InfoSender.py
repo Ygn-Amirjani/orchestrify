@@ -73,7 +73,7 @@ class InfoSender:
 
         try:
             result = self.post(f"{self.args.master_ip}/worker", data)
-            self.logger.info(f"Worker {eval(result.text)["id"]} has successfully registered")
+            self.logger.info(f"Worker {eval(result.text)['id']} has successfully registered")
 
         except requests.exceptions.RequestException as e:
             self.logger.error(f"Worker registration failed: {e}")
@@ -90,7 +90,7 @@ class InfoSender:
 
             try:
                 result = self.put(f"{self.args.master_ip}/worker/{self.worker_id}", data)
-                self.logger.info(f"Worker {eval(result.text)["id"]} has successfully updated")
+                self.logger.info(f"Worker {eval(result.text)['id']} has successfully updated")
 
             except requests.exceptions.RequestException as e:
                 self.logger.error(f"Worker update failed: {e}")

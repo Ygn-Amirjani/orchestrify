@@ -39,7 +39,7 @@ class WorkerRegistrer(Resource):
                         if response.status_code == 200:
                             self.logger.info(f"Successfully deleted log file for worker {args['id']} on IP {args['ip']}")
                         else:
-                            self.logger.error(f"Failed to delete log file for worker {args['id']} on IP {args['ip']}: {response.content}")
+                            self.logger.error(f"Failed to delete log file for worker {args['id']}: {response.content}")
 
                     except requests.RequestException as re:
                         self.logger.error(f"RequestException while trying to delete log file for worker {args['id']} on IP {args['ip']}: {str(re)}")
@@ -48,11 +48,11 @@ class WorkerRegistrer(Resource):
                     self.logger.error("This worker has already been registered and is in the database list")
                     return {"status": "error", "message": f"This IP is already used {worker_info}"}, 400
 
-            log_file = f"logs/worker_register_{args["id"]}.log"
+            log_file = f"logs/worker_register_{args['id']}.log"
             setup_logging(log_file)
             self.logger.info('Worker Registrer: initialized')
 
-            self.repository.create(f"worker:{args["id"]}:{args["ip"]}", args)
+            self.repository.create(f"worker:{args['id']}:{args['ip']}", args)
 
             self.logger.info(f"Worker {args['id']} registered successfully with IP {args['ip']}")
             return {"status": "ok", "id": args["id"]}, 200

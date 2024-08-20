@@ -18,7 +18,7 @@ api = Api(app)
 # Enable debug mode for the Flask app
 app.debug = True
 
-master_url = f'http://{CONFIG.get('host')}:{CONFIG.get('port')}'
+master_url = f"http://{CONFIG.get('host')}:{CONFIG.get('port')}"
 
 # Add routes for resources based on configuration
 api.add_resource(
