@@ -105,12 +105,17 @@ class NotificationHandler(Resource):
         """Build the arguments for deploying the container image."""
         try:
             port_mapping = self.reformat_port(self.container_info.get('port'))
+
+            env_mapping = None
+            if self.container_info.get('environment'):
+                env_mapping = eval(self.container_info.get('environment'))
+
             args_dict = {
-                "image_name": self.container_info.get("image_name"),
-                "name": "test",
-                "network": None,
+                "image_name": self.container_info.get("image_name", None),
+                "name": self.container_info.get("name", None),
+                "network": self.container_info.get("network_mode", None),
                 "port": port_mapping,
-                "environment": self.container_info.get('environment'),
+                "environment": env_mapping,
             }
             self.logger.debug(f"Built args: {args_dict}")
             return argparse.Namespace(**args_dict)
@@ -122,7 +127,7 @@ class NotificationHandler(Resource):
     def reformat_port(self, container_port_str: str) -> Dict[str, Any]:
         """Reformat the port information from the container info."""
         try:
-            temp_dict = ast.literal_eval("{'80/tcp': 1234}")
+            temp_dict = ast.literal_eval(container_port_str)
             port_mapping = {f"{int(key.split('/')[0])}/tcp": value for key, value in temp_dict.items()}
             self.logger.debug(f"Reformatted port mapping: {port_mapping}")
             return port_mapping

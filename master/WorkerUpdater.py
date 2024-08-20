@@ -35,7 +35,7 @@ class WorkerUpdater(Resource):
                 return {"message": "Worker not found"}, 404
             
             # Check CPU and RAM usage to determine availability status
-            if args['cpu-usage'] >= 80 and args['ram-usage'] >= 80:
+            if args['cpu-usage'] >= 85 or args['ram-usage'] >= 85:
                 args['status'] = 'UNAVAILABLE'
             else:
                 args['status'] = 'AVAILABLE'

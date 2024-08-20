@@ -16,9 +16,11 @@ from master.ImageDeploymentHandler import ImageDeploymentHandler
 from master.WorkerSelector import WorkerSelector
 from master.ContainersList import ContainersList
 from master.ContainerInfo import ContainerInfo
+from master.ContainerDeleter import ContainerDeleter
 from master.NotificationHandler import NotificationHandler
 from master.ContainerFetcher import ContainerFetcher
 from master.ContainerStatusReceiver import ContainerStatusReceiver
+from master.ContainerReallocator import ContainerReallocator
 from master.cli import get_arguments
 from master.conf.logging_config import setup_logging
 from master.database.RedisDB import Redis
@@ -52,7 +54,7 @@ api.add_resource(
 api.add_resource(
     WorkerDelete,
     CONFIG.get('routes', {}).get('master', {}).get('worker_delete'),
-    resource_class_kwargs={'repository': db}
+    resource_class_kwargs={'repository': db, 'master_ip': CONFIG.get('host')}
 )
 api.add_resource(
     WorkersList,
@@ -84,6 +86,87 @@ api.add_resource(
     CONFIG.get('routes', {}).get('master', {}).get('Container_fetcher'),
     resource_class_kwargs={'repository': db}
 )
+api.add_resource(
+    ContainerReallocator,
+    CONFIG.get('routes', {}).get('master', {}).get('container_reallocator'),
+    resource_class_kwargs={'repository': db}
+)
+
+def fetch_and_print_workers() -> None:
+    """Fetch and print the list of workers."""
+    try:
+        workers_list = WorkersList(db)
+        workers, status = workers_list.get()
+        if status == 200:
+            print("List of workers:\n")
+            for worker in workers:
+                print(worker)
+        else:
+            print(f"Failed to retrieve workers. Status code: {status}")
+    except Exception as e:
+       logger.error(f"Failed to retrieve worker list: {e}")
+
+def fetch_worker(worker_id: str) -> None:
+    """Fetch and print the information of worker."""
+    try:
+        workers_info = WorkerInfo(db)
+        worker_info, status = workers_info.get(worker_id)
+
+        if status == 200:
+            print("Worker information:\n")
+            print(worker_info)
+        else:
+            print(f"Failed to retrieve worker. Status code: {status}, Error: {worker_info['error']}")
+    except Exception as e:
+       logger.error(f"Failed to retrieve worker information: {e}")
+
+def delete_worker(worker_id: str) -> None:
+    worker_delete = WorkerDelete(db, CONFIG.get('host'))
+    worker_info, status = worker_delete.delete(worker_id)
+
+    if status == 200:
+        print('worker is deleted')
+        print(worker_info)
+    else:
+        print('failed to delete worker')
+
+def fetch_and_print_containers() -> None:
+    """Fetch and print the list of workers."""
+    try:
+        containers_list = ContainersList(db)
+        containers, status = containers_list.get()
+        if status == 200:
+            print("List of containers:\n")
+            for container in containers:
+                print(container)
+        else:
+            print(f"Failed to retrieve containers. Status code: {status}")
+    except Exception as e:
+       logger.error(f"Failed to retrieve containers list: {e}")
+
+def fetch_container(container_id: str) -> None:
+    """Fetch and print the information of container."""
+    try:
+        containers_info = ContainerInfo(db)
+        container_info, status = containers_info.get(container_id)
+
+        if status == 200:
+            print("container information:\n")
+            print(container_info)
+        else:
+            print(f"Failed to retrieve container. Status code: {status}, Error: {container_info['error']}")
+    except Exception as e:
+        logger.error(f"Failed to retrieve container information: {e}")
+
+def delete_container(container_id: str) -> None:
+    container_delete = ContainerDeleter(db, container_id)
+    container_info, status = container_delete.main()
+
+    if status == 200:
+        print('container is deleted')
+        print(container_info)
+    else:
+        print('failed to delete container')
 
 def start_image_deployment_handler(args) -> None:
     """Start ImageDeploymentHandler instance in a separate thread."""
@@ -108,6 +191,7 @@ def start_container_status_receiver(stop_event: threading.Event) -> None:
 def signal_handler(signal: int, frame: Any) -> None:
     """Handle signal interruption."""
     logger.info("Shutting down gracefully...")
+    print("Shutting down gracefully...")
     if 'start_container_status_receiver' in globals():
         start_container_status_receiver.stop()  # Stop the start_container_status_receiver thread
     sys.exit(0)
@@ -122,11 +206,23 @@ def main() -> None:
     try:
         args = get_arguments()
 
-        # Start ContainerStatusReceiver thread
-        stop_event = threading.Event()
-        start_container_status_receiver = start_container_status_receiver(stop_event)
-
-        if args.image_name:
+        if args.nodes:
+            # Handle the --nodes argument by fetching and printing worker list
+            fetch_and_print_workers()
+        elif args.node:
+            # Handle the --node ID argument by fetching and printing worker information
+            fetch_worker(args.node)
+        elif args.node_del:
+            delete_worker(args.node_del) 
+        elif args.procs:
+            # Handle the --procs argument by fetching and printing container list
+            fetch_and_print_containers()
+        elif args.proc:
+            # Handle the --proc ID argument by fetching and printing container information
+            fetch_container(args.proc)
+        elif args.proc_del:
+            delete_container(args.proc_del)
+        elif args.image_name:
             # Create a thread for starting imageDeploymentHandler
             image_sender_thread = threading.Thread(target=start_image_deployment_handler, args=(args,))
             image_sender_thread.start() # Start imageDeploymentHandler thread
@@ -134,6 +230,11 @@ def main() -> None:
             # Wait for imageDeploymentHandler thread to complete
             image_sender_thread.join()
         else:
+
+            # Start ContainerStatusReceiver thread
+            stop_event = threading.Event()
+            start_container_status_receiver = start_container_status_receiver(stop_event)
+
             # Run the Flask app in the main thread using specified host and port from configuration
             app.run(host=CONFIG.get('host'), port=CONFIG.get('port'))
 

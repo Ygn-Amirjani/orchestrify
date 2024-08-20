@@ -73,7 +73,7 @@ class InfoSender:
 
         try:
             result = self.post(f"{self.args.master_ip}/worker", data)
-            self.logger.info(f"Worker {eval(result.text)["id"]} has successfully registered")
+            self.logger.info(f"Worker {eval(result.text)['id']} has successfully registered")
 
         except requests.exceptions.RequestException as e:
             self.logger.error(f"Worker registration failed: {e}")
@@ -90,7 +90,7 @@ class InfoSender:
 
             try:
                 result = self.put(f"{self.args.master_ip}/worker/{self.worker_id}", data)
-                self.logger.info(f"Worker {eval(result.text)["id"]} has successfully updated")
+                self.logger.info(f"Worker {eval(result.text)['id']} has successfully updated")
 
             except requests.exceptions.RequestException as e:
                 self.logger.error(f"Worker update failed: {e}")
@@ -103,16 +103,8 @@ class InfoSender:
     def delete_info(self) -> None:
         """Delete worker information when stopping."""
         try:
-            result = self.delete(f"{self.args.master_ip}/worker/{self.worker_id}")
+            result = self.delete(f"{self.args.master_ip}/del/worker/{self.worker_id}")
             self.logger.info(f"Worker {self.worker_id} has successfully deleted")
-
-            # Remove the log file
-            if os.path.exists(self.log_file):
-                os.remove(self.log_file)
-                log_file = f'logs/worker_app.log'
-                setup_logging(log_file)
-                logger = logging.getLogger(self.__class__.__name__)
-                logger.info(f"Log file {self.log_file} deleted")
 
         except requests.exceptions.RequestException as e:
             self.logger.error(f"Worker deletion failed: {e} and result: {result.text}")
