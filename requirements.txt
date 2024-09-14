@@ -2,5 +2,6 @@ requests
 psutil
 flask
 flask_restful
+flask-cors
 docker
 redis

@@ -5,6 +5,7 @@ import signal
 import sys
 from flask import Flask
 from flask_restful import Api
+from flask_cors import CORS
 from typing import Any
 
 from worker.conf.config import CONFIG
@@ -25,6 +26,9 @@ logger = logging.getLogger(__name__)
 # Initialize Flask
 app = Flask(__name__)
 api = Api(app)
+
+# Enable CORS for all routes
+CORS(app)
 
 # Enable debug mode for the Flask app
 app.debug = True

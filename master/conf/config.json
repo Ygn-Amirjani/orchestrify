@@ -10,9 +10,11 @@
 			"worker_info":"/worker/<string:worker_id>",
 			"containers_list": "/containers",
 			"container_info": "/container/<string:container_id>",
+			"container_delete": "/del/container/<string:container_id>",
 			"notification": "/notification",
 			"Container_fetcher": "/container_fetcher",
-			"container_reallocator": "/reallocator"
+			"container_reallocator": "/reallocator",
+			"deploy_image": "/deploy_image"
 		}
 	},
     "redis": {
