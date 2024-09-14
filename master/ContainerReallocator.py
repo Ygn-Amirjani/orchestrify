@@ -55,8 +55,8 @@ class ContainerReallocator(Resource):
 
     def delete_container(self, container_info) -> bool:
         try:
-            container_deleter = ContainerDeleter(self.repository, container_info.get('id'))
-            result = container_deleter.main()
+            container_deleter = ContainerDeleter(self.repository)
+            result = container_deleter.delete(container_info.get('id'))
             if result:
                 _, status = result
                 return status

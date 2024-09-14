@@ -5,12 +5,14 @@ import logging
 
 from master.database.Repository import Repository
 from master.ContainersList import ContainersList
+from master.WorkersList import WorkersList
 from master.conf.logging_config import setup_logging
 
 class ContainerFetcher(Resource):
     def __init__(self, repository: Repository) -> None:
         self.repository = repository
         self.containers_list = ContainersList(repository)
+        self.workers_list = WorkersList(repository)
         self.container_port: Union[str, None] = None
         self.ips: List[str] = []
 
@@ -37,7 +39,7 @@ class ContainerFetcher(Resource):
 
             found_container = False
             for container_key in container_keys:
-                if container_key.split(":")[1] != data:
+                if container_key.split(":")[3] != data:
                     continue
 
                 container_info = self.repository.read(container_key)
@@ -52,6 +54,13 @@ class ContainerFetcher(Resource):
                     "status": "error",
                     "message": f"Container with name '{data}' not found."
                 }, 404
+
+            worker_keys, status = self.workers_list.get()
+            for worker_key in worker_keys:
+                if worker_key.split(":")[2] in self.ips:
+                    worker_info = self.repository.read(worker_key)
+                    if worker_info.get('status') != 'AVAILABLE':
+                        self.ips.remove(worker_key.split(":")[2])
 
             response = {
                 "status": "ok",

@@ -8,6 +8,7 @@ from master.conf.logging_config import setup_logging
 import requests
 import logging
 
+servers_queue: Deque[str] = deque()
 
 class Proxy(Resource):
     def __init__(self, master_url: str) -> None:
@@ -15,7 +16,6 @@ class Proxy(Resource):
         log_file = "logs/loadbalancer.log"
         setup_logging(log_file)
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.servers_queue: Deque[str] = deque()
 
     def round_robin_load_balancing(self, available_servers_queue: list[str]) -> str:
         """Select one of the available servers using RoundRobin load balancing algorithm"""
@@ -24,19 +24,27 @@ class Proxy(Resource):
             raise ValueError("There aren't any servers available!")
 
         # Init round
-        if len(self.servers_queue) == 0:
+        if len(servers_queue) == 0:
             for s in available_servers_queue:
-                self.servers_queue.append(s)
+                servers_queue.append(s)
 
-        current_server = self.servers_queue.popleft()
+        if len(available_servers_queue) > len(servers_queue):
+            for s in available_servers_queue:
+                if s not in servers_queue:
+                    servers_queue.append(s)
+
+        current_server = servers_queue.popleft()
 
         # Greedily update servers list with available servers
         while current_server not in set(available_servers_queue):
-            self.servers_queue.remove(current_server)
-            current_server = self.servers_queue.popleft()
+            servers_queue.remove(current_server)
+            current_server = servers_queue.popleft()
 
         # Put server in the end of the list
-        self.servers_queue.append(current_server)
+        self.logger.info(f'before -> servers queue:{servers_queue}')
+        servers_queue.append(current_server)
+        self.logger.info(f'after -> servers queue:{servers_queue}')
+        self.logger.info(f'available_servers_queue: {available_servers_queue}')
         return current_server
 
     def find_container_url(self, container_info: Dict[str, Any]) -> str:

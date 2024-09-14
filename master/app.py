@@ -4,6 +4,7 @@ import signal
 import sys
 from flask import Flask
 from flask_restful import Api
+from flask_cors import CORS
 from typing import Any
 
 from master.conf.config import CONFIG
@@ -13,6 +14,7 @@ from master.WorkerDelete import WorkerDelete
 from master.WorkersList import WorkersList
 from master.WorkerInfo import WorkerInfo
 from master.ImageDeploymentHandler import ImageDeploymentHandler
+from master.DeployImage import DeployImage
 from master.WorkerSelector import WorkerSelector
 from master.ContainersList import ContainersList
 from master.ContainerInfo import ContainerInfo
@@ -33,6 +35,9 @@ logger = logging.getLogger(__name__)
 # Initialize Flask
 app = Flask(__name__)
 api = Api(app)
+
+# Enable CORS for all routes
+CORS(app)
 
 # Enable debug mode for the Flask app
 app.debug = True
@@ -77,6 +82,11 @@ api.add_resource(
     resource_class_kwargs={'repository': db}
 )
 api.add_resource(
+    ContainerDeleter,
+    CONFIG.get('routes', {}).get('master', {}).get('container_delete'),
+    resource_class_kwargs={'repository': db}
+)
+api.add_resource(
     NotificationHandler,
     CONFIG.get('routes', {}).get('master', {}).get('notification'),
     resource_class_kwargs={'repository': db}
@@ -89,6 +99,11 @@ api.add_resource(
 api.add_resource(
     ContainerReallocator,
     CONFIG.get('routes', {}).get('master', {}).get('container_reallocator'),
+    resource_class_kwargs={'repository': db}
+)
+api.add_resource(
+    DeployImage,
+    CONFIG.get('routes', {}).get('master', {}).get('deploy_image'),
     resource_class_kwargs={'repository': db}
 )
 
@@ -159,8 +174,8 @@ def fetch_container(container_id: str) -> None:
         logger.error(f"Failed to retrieve container information: {e}")
 
 def delete_container(container_id: str) -> None:
-    container_delete = ContainerDeleter(db, container_id)
-    container_info, status = container_delete.main()
+    container_delete = ContainerDeleter(db)
+    container_info, status = container_delete.delete(container_id)
 
     if status == 200:
         print('container is deleted')
